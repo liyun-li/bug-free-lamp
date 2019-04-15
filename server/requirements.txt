@@ -1,0 +1,12 @@
+flask
+flask-sqlalchemy
+flask-session
+flask-cors
+sqlalchemy
+sqlalchemy-utils
+eventlet
+gunicorn
+pathlib
+mysql-connector
+python-dotenv
+redis
