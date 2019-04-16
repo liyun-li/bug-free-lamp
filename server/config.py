@@ -23,8 +23,11 @@ class Config:
         u=dbuser, p=dbpass, h=dbhost, pt=dbport, n=dbname
     )
 
+    DEBUG = False
+
     if getenv('DEVELOPMENT_MODE'):
         SQLALCHEMY_DATABASE_URI = 'sqlite:///app.db'
+        DEBUG = True
     elif not (dbuser and dbhost and dbname):
         print('.env configuration incomplete')
         exit(1)
@@ -42,6 +45,3 @@ class Config:
 
     # template autoreload
     TEMPLATES_AUTO_RELOAD = True
-
-    # Debug mode
-    DEBUG = False
