@@ -1,6 +1,5 @@
 def create_app():
     from flask import Flask
-    from app.stream import socketio
     from app.views import views
     from app.models import db
 
@@ -19,9 +18,5 @@ def create_app():
             db.drop_all()
         db.create_all()
     app.db = db
-
-    # initialize socketio
-    socketio.init_app(app)
-    app.socketio = socketio
 
     return app
