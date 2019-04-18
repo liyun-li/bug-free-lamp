@@ -5,6 +5,7 @@ import Chat from 'src/Chat/Chat';
 import { routes } from 'src/constants';
 import Group from 'src/Group';
 import Landing from 'src/Landing';
+import Navigation from 'src/Navigation';
 import Post from 'src/Post';
 import Profile from 'src/Profile';
 import SignIn from 'src/SignIn';
@@ -15,9 +16,10 @@ class App extends React.Component {
         return (
             <BrowserRouter>
                 <Grid container>
-                    <Grid item>
+                    <Grid item xs={12}>
+                        <Navigation signedIn />
                     </Grid>
-                    <Grid item>
+                    <Grid item xs={12}>
                         <Switch>
                             <Route path={routes.landing} component={Landing} />
                             <Route path={routes.chat} component={Chat} />
