@@ -4,5 +4,6 @@ export enum routes {
     group = '/group',
     profile = '/profile',
     signIn = '/sign-in',
-    signUp = '/sign-up'
+    signUp = '/sign-up',
+    post = '/post'
 }
