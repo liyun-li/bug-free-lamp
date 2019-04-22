@@ -6,6 +6,7 @@ import { routes } from 'src/constants';
 import Group from 'src/Group';
 import Landing from 'src/Landing';
 import Navigation from 'src/Navigation';
+import Overlay from 'src/Overlay';
 import Post from 'src/Post';
 import Profile from 'src/Profile';
 import SignIn from 'src/SignIn';
@@ -15,6 +16,7 @@ class App extends React.Component {
     public render() {
         return (
             <BrowserRouter>
+                <Overlay />
                 <Grid container>
                     <Grid item xs={12}>
                         <Navigation signedIn />
