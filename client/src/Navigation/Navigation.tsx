@@ -4,6 +4,8 @@ import ExitToApp from '@material-ui/icons/ExitToApp';
 import MailIcon from '@material-ui/icons/Mail';
 import PeopleIcon from '@material-ui/icons/People';
 import * as React from 'react';
+import { IStore } from 'src/store';
+import { connect } from 'react-redux';
 
 interface INavigationStyles {
     menuIcon: string;
@@ -27,6 +29,10 @@ const styles = createStyles({
         flexGlow: 1,
         flex: 1
     }
+});
+
+const mapStateToProps = (state: IStore) => ({
+
 });
 
 class Navigation extends React.Component<INavigationProps> {
@@ -71,4 +77,4 @@ class Navigation extends React.Component<INavigationProps> {
     }
 }
 
-export default withStyles(styles)(Navigation);
+export default withStyles(styles)(connect(mapStateToProps)(Navigation));

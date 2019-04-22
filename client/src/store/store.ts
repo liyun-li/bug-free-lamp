@@ -1,12 +1,15 @@
 import { createStore, combineReducers } from 'redux';
 import { IOverlay, overlayReducer } from './overlay';
+import { IProfile, profileReducer } from './profile';
 
 export interface IStore {
-    overlay: IOverlay
+    overlay: IOverlay;
+    profile: IProfile;
 }
 
 const reducers = {
-    overlay: overlayReducer
+    overlay: overlayReducer,
+    profile: profileReducer
 };
 
 const rootReducer = combineReducers<IStore>(reducers);
