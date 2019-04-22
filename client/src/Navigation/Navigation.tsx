@@ -32,7 +32,7 @@ const styles = createStyles({
 });
 
 const mapStateToProps = (state: IStore) => ({
-
+    signedIn: state.profile.signedIn
 });
 
 class Navigation extends React.Component<INavigationProps> {

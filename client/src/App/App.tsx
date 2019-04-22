@@ -1,7 +1,7 @@
 import { Grid } from '@material-ui/core';
 import * as React from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import Chat from 'src/Chat/Chat';
+import Chat from 'src/Chat';
 import { routes } from 'src/constants';
 import Group from 'src/Group';
 import Landing from 'src/Landing';
@@ -19,7 +19,7 @@ class App extends React.Component {
                 <Overlay />
                 <Grid container>
                     <Grid item xs={12}>
-                        <Navigation signedIn />
+                        <Navigation />
                     </Grid>
                     <Grid item xs={12}>
                         <Switch>
