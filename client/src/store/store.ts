@@ -1,5 +1,9 @@
 import { createStore, combineReducers } from 'redux';
 
+export interface IStore {
+
+}
+
 const reducers = {
 
 };
