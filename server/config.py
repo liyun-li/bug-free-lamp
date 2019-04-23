@@ -35,8 +35,10 @@ class Config:
     # session
     # https://pythonhosted.org/Flask-Session/
     # 'filesystem' is an alternative if you don't want to use Redis
-    SESSION_TYPE = 'redis'
-    SESSION_REDIS = Redis(host='app_cache', port=6379)
+    # SESSION_TYPE = 'redis'
+    # SESSION_REDIS = Redis(host='app_cache', port=6379)
+    SESSION_TYPE = 'filesystem'
+    SESSION_FILE_DIR = '/tmp'
 
     SECRET_KEY = getenv('SERVER_KEY')
 
