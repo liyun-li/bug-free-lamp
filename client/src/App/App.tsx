@@ -1,6 +1,7 @@
 import { Grid } from '@material-ui/core';
 import * as React from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import AlertBox from 'src/AlertBox';
 import Chat from 'src/Chat';
 import { routes } from 'src/constants';
 import Group from 'src/Group';
@@ -15,6 +16,7 @@ class App extends React.Component {
         return (
             <BrowserRouter>
                 <Overlay />
+                <AlertBox />
                 <Grid container>
                     <Grid item xs={12}>
                         <Navigation />
