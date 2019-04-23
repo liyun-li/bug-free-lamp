@@ -10,7 +10,7 @@ const INITIAL_STATE: IOverlay = {
 }
 
 const actionCreator = actionCreatorFactory('Profile');
-export const setOverlayDisplay = actionCreator<IOverlay['display']>('setLoginStatus');
+export const setOverlayDisplay = actionCreator<IOverlay['display']>('setOverlayDisplay');
 
 export const overlayReducer = reducerWithInitialState(INITIAL_STATE)
     .case(setOverlayDisplay, (state: IOverlay, payload) => ({
