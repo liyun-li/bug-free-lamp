@@ -12,6 +12,8 @@ import { IStore } from 'src/store';
 import { setSignInDialogDisplay, setSignUpDialogDisplay } from 'src/store/dialog';
 import axios from 'axios';
 import { setLoginStatus } from 'src/store/profile';
+import { withRouter, RouteComponentProps } from 'react-router-dom';
+import { routes } from 'src/constants';
 
 interface INavigationStyles {
     menuIcon: string;
@@ -21,6 +23,7 @@ interface INavigationStyles {
 }
 
 interface INavigationProps extends
+    RouteComponentProps,
     ReturnType<typeof mapStateToProps>,
     ReturnType<typeof mapDispatchToProps> {
     classes: INavigationStyles;
@@ -61,7 +64,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 class Navigation extends React.Component<INavigationProps> {
     render() {
-        const { classes, signedIn, setSignInDialogDisplay, setSignUpDialogDisplay, signOut } = this.props;
+        const { classes, signedIn, setSignInDialogDisplay, setSignUpDialogDisplay, signOut, history } = this.props;
 
         return (
             <AppBar>
@@ -73,15 +76,15 @@ class Navigation extends React.Component<INavigationProps> {
                     {
                         signedIn && (
                             <React.Fragment>
-                                <IconButton>
+                                <IconButton onClick={() => history.push(routes.group)}>
                                     <PeopleIcon className={classes.iconOnTheRight} />
                                 </IconButton>
-                                <IconButton>
+                                <IconButton onClick={() => history.push(routes.chat)}>
                                     <Badge badgeContent={4} color='secondary'>
                                         <MailIcon className={classes.iconOnTheRight} />
                                     </Badge>
                                 </IconButton>
-                                <IconButton>
+                                <IconButton onClick={() => history.push(routes.profile)}>
                                     <AccountCircle className={classes.iconOnTheRight} />
                                 </IconButton>
                                 <IconButton onClick={() => {
@@ -114,4 +117,4 @@ class Navigation extends React.Component<INavigationProps> {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(Navigation));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(Navigation)));
