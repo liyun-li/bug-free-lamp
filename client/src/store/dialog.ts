@@ -2,18 +2,25 @@ import actionCreatorFactory from 'typescript-fsa';
 import { reducerWithInitialState } from 'typescript-fsa-reducers';
 
 export interface IDialog {
-    display: boolean;
+    signInDisplay: boolean;
+    signUpDisplay: boolean;
 }
 
 const INITIAL_STATE: IDialog = {
-    display: false
+    signInDisplay: false,
+    signUpDisplay: false
 }
 
 const actionCreator = actionCreatorFactory('Profile');
-export const setDialogDisplay = actionCreator<IDialog['display']>('setLoginStatus');
+export const setSignInDialogDisplay = actionCreator<IDialog['signInDisplay']>('setSignInDialogDisplay');
+export const setSignUpDialogDisplay = actionCreator<IDialog['signUpDisplay']>('setSignUpDialogDisplay');
 
 export const dialogReducer = reducerWithInitialState(INITIAL_STATE)
-    .case(setDialogDisplay, (state: IDialog, payload) => ({
+    .case(setSignInDialogDisplay, (state, payload): IDialog => ({
         ...state,
-        display: payload
+        signInDisplay: payload
+    }))
+    .case(setSignUpDialogDisplay, (state, payload): IDialog => ({
+        ...state,
+        signUpDisplay: payload
     }));

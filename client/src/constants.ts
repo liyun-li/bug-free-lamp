@@ -3,7 +3,5 @@ export enum routes {
     chat = '/chat',
     group = '/group',
     profile = '/profile',
-    signIn = '/sign-in',
-    signUp = '/sign-up',
     post = '/post'
 }

@@ -9,8 +9,6 @@ import Navigation from 'src/Navigation';
 import Overlay from 'src/Overlay';
 import Post from 'src/Post';
 import Profile from 'src/Profile';
-import SignIn from 'src/SignIn';
-import SignUp from 'src/SignUp';
 
 class App extends React.Component {
     public render() {
@@ -27,8 +25,6 @@ class App extends React.Component {
                             <Route path={routes.chat} component={Chat} />
                             <Route path={routes.group} component={Group} />
                             <Route path={routes.profile} component={Profile} />
-                            <Route path={routes.signIn} component={SignIn} />
-                            <Route path={routes.signUp} component={SignUp} />
                             <Route path={routes.post} component={Post} />
                         </Switch>
                     </Grid>

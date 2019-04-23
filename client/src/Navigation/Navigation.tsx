@@ -4,18 +4,22 @@ import ExitToApp from '@material-ui/icons/ExitToApp';
 import MailIcon from '@material-ui/icons/Mail';
 import PeopleIcon from '@material-ui/icons/People';
 import * as React from 'react';
-import { IStore } from 'src/store';
 import { connect } from 'react-redux';
+import { Dispatch } from 'redux';
+import { IStore } from 'src/store';
+import { setSignInDialogDisplay, setSignUpDialogDisplay } from 'src/store/dialog';
 
 interface INavigationStyles {
     menuIcon: string;
     iconOnTheRight: string;
     flexGlow: string;
+    spacing: string;
 }
 
-interface INavigationProps {
+interface INavigationProps extends
+    ReturnType<typeof mapStateToProps>,
+    ReturnType<typeof mapDispatchToProps> {
     classes: INavigationStyles;
-    signedIn: boolean;
 }
 
 const styles = createStyles({
@@ -23,11 +27,15 @@ const styles = createStyles({
         color: 'white'
     },
     iconOnTheRight: {
-        color: 'white'
+        color: 'white',
+        borderColor: 'white'
     },
     flexGlow: {
         flexGlow: 1,
         flex: 1
+    },
+    spacing: {
+        paddingLeft: '8px'
     }
 });
 
@@ -35,9 +43,18 @@ const mapStateToProps = (state: IStore) => ({
     signedIn: state.profile.signedIn
 });
 
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+    setSignInDialogDisplay: (display: boolean) => {
+        dispatch(setSignInDialogDisplay(display));
+    },
+    setSignUpDialogDisplay: (display: boolean) => {
+        dispatch(setSignUpDialogDisplay(display));
+    }
+});
+
 class Navigation extends React.Component<INavigationProps> {
     render() {
-        const { classes, signedIn } = this.props;
+        const { classes, signedIn, setSignInDialogDisplay, setSignUpDialogDisplay } = this.props;
 
         return (
             <AppBar>
@@ -66,8 +83,15 @@ class Navigation extends React.Component<INavigationProps> {
                             </React.Fragment>
                         ) || (
                             <React.Fragment>
-                                <Button className={classes.iconOnTheRight}>Sign Up</Button>
-                                <Button className={classes.iconOnTheRight}>Sign In</Button>
+                                <Button className={classes.iconOnTheRight} variant='outlined'
+                                    onClick={() => setSignUpDialogDisplay(true)}>
+                                    Sign Up
+                                </Button>
+                                <div className={classes.spacing} />
+                                <Button className={classes.iconOnTheRight} variant='outlined'
+                                    onClick={() => setSignInDialogDisplay(true)}>
+                                    Sign In
+                                </Button>
                             </React.Fragment>
                         )
                     }
@@ -77,4 +101,4 @@ class Navigation extends React.Component<INavigationProps> {
     }
 }
 
-export default withStyles(styles)(connect(mapStateToProps)(Navigation));
+export default withStyles(styles)(connect(mapStateToProps, mapDispatchToProps)(Navigation));

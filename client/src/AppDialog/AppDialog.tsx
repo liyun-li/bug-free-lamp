@@ -1,50 +1,42 @@
 import { Dialog, DialogContent, DialogContentText, DialogTitle, DialogActions, Button } from '@material-ui/core';
 import * as React from 'react';
-import { connect } from 'react-redux';
-import { IStore } from 'src/store';
-import { setDialogDisplay } from 'src/store/dialog';
-import { Action } from 'redux';
 
-interface IDialogProps extends ReturnType<typeof mapStateToProps>, ReturnType<typeof mapDispatchToProps> {
+interface IDialogProps {
     title: string;
     description: string;
-    buttons: {
+    buttons?: {
         text: string;
         func: () => void;
     }[];
+    display: boolean;
+    setDisplay: (display: boolean) => void;
 }
 
-const mapStateToProps = (state: IStore) => ({
-    ...state.dialog
-});
-
-const mapDispatchToProps = (dispatch: React.Dispatch<Action>) => ({
-    setDialogDisplay: (display: boolean) => {
-        dispatch(setDialogDisplay(display));
-    }
-});
-
 class AppDialog extends React.Component<IDialogProps> {
-    private dialogButtons = () => this.props.buttons.map(button => (
-        <Button onClick={button.func}>{button.text}</Button>
-    ))
+    constructor(props: IDialogProps) {
+        super(props);
+    }
 
     render() {
-        const { title, description, display, setDialogDisplay } = this.props;
+        const { title, description, display, setDisplay } = this.props;
+
+        const dialogButtons = (this.props.buttons || []).map(button => (
+            <Button onClick={button.func}>{button.text}</Button>
+        ));
 
         return (
-            <Dialog open={display} onClose={() => setDialogDisplay(false)}>
+            <Dialog open={display} onClose={() => setDisplay(false)}>
                 <DialogTitle>{title}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>{description}</DialogContentText>
                     {this.props.children}
                 </DialogContent>
                 <DialogActions>
-                    {this.dialogButtons()}
+                    {dialogButtons}
                 </DialogActions>
             </Dialog>
         );
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(AppDialog);
+export default AppDialog;
