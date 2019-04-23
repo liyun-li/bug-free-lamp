@@ -5,15 +5,15 @@ import MailIcon from '@material-ui/icons/Mail';
 import PeopleIcon from '@material-ui/icons/People';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dispatch } from 'redux';
+import { routes } from 'src/constants';
+import { postRequest } from 'src/httpRequest';
 import SignIn from 'src/SignIn';
 import SignUp from 'src/SignUp';
 import { IStore } from 'src/store';
 import { setSignInDialogDisplay, setSignUpDialogDisplay } from 'src/store/dialog';
-import axios from 'axios';
 import { setLoginStatus } from 'src/store/profile';
-import { withRouter, RouteComponentProps } from 'react-router-dom';
-import { routes } from 'src/constants';
 
 interface INavigationStyles {
     menuIcon: string;
@@ -69,9 +69,11 @@ class Navigation extends React.Component<INavigationProps> {
         return (
             <AppBar>
                 <Toolbar>
-                    <Typography variant='h6' color='inherit'>
-                        Best Social Media Not
-                    </Typography>
+                    <Button onClick={() => history.push('/', null)} color='inherit'>
+                        <Typography variant='h6' color='inherit'>
+                            Best Social Media Not
+                        </Typography>
+                    </Button>
                     <div className={classes.flexGlow} />
                     {
                         signedIn && (
@@ -88,7 +90,7 @@ class Navigation extends React.Component<INavigationProps> {
                                     <AccountCircle className={classes.iconOnTheRight} />
                                 </IconButton>
                                 <IconButton onClick={() => {
-                                    axios.post('http://127.0.0.1:3001/logout').then(_response => {
+                                    postRequest('/logout').then(_response => {
                                         signOut();
                                     });
                                 }}>
