@@ -70,8 +70,10 @@ class SignIn extends React.Component<ISignInProps, ISignInState> {
                                 setOverlayDisplay(false);
                             }).catch(error => {
                                 const response = error.response;
-                                if (response && response.data)
+                                if (response && response.data) {
                                     showError(response.data);
+                                }
+                                setOverlayDisplay(false);
                             });
                         }
                     },

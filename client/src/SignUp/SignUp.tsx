@@ -72,8 +72,10 @@ class SignUp extends React.Component<ISignUpProps, ISignUpState> {
                                 setOverlayDisplay(false);
                             }).catch(error => {
                                 const response = error.response;
-                                if (response && response.data)
+                                if (response && response.data) {
                                     showError(response.data);
+                                }
+                                setOverlayDisplay(false);
                             });
                         }
                     },
