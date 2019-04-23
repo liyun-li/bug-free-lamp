@@ -3,6 +3,7 @@ def create_app():
     from flask_cors import CORS
 
     from app.views import views
+    from app.user import user
     from app.models import db
 
     app = Flask(__name__)
@@ -23,8 +24,9 @@ def create_app():
 
     # register blueprints
     app.register_blueprint(views)
+    app.register_blueprint(user)
 
-    # set CORS
+    # set CORS to accept queries from anywhere
     CORS(app, resources={r"/*": {'origins': ['0.0.0.0']}})
 
     return app

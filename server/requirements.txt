@@ -10,3 +10,4 @@ pathlib
 mysql-connector
 python-dotenv
 redis
+bcrypt
