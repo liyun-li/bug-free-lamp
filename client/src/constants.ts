@@ -3,5 +3,6 @@ export enum routes {
     chat = '/chat',
     group = '/group',
     profile = '/profile',
-    post = '/post'
+    post = '/post',
+    friends = '/contacts'
 }

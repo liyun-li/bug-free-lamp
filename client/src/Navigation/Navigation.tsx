@@ -1,4 +1,4 @@
-import { AppBar, Badge, Button, createStyles, IconButton, Toolbar, Typography, withStyles } from '@material-ui/core';
+import { AppBar, Badge, Button, createStyles, IconButton, Toolbar, Typography, withStyles, Theme } from '@material-ui/core';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import ExitToApp from '@material-ui/icons/ExitToApp';
 import MailIcon from '@material-ui/icons/Mail';
@@ -16,6 +16,7 @@ import { setSignInDialogDisplay, setSignUpDialogDisplay } from 'src/store/dialog
 import { setLoginStatus } from 'src/store/profile';
 
 interface INavigationStyles {
+    appBar: string;
     menuIcon: string;
     iconOnTheRight: string;
     flexGlow: string;
@@ -29,7 +30,10 @@ interface INavigationProps extends
     classes: INavigationStyles;
 }
 
-const styles = createStyles({
+const styles = (theme: Theme) => createStyles({
+    appBar: {
+        zIndex: theme.zIndex.drawer + 1
+    },
     menuIcon: {
         color: 'white'
     },
@@ -67,11 +71,11 @@ class Navigation extends React.Component<INavigationProps> {
         const { classes, signedIn, setSignInDialogDisplay, setSignUpDialogDisplay, signOut, history } = this.props;
 
         return (
-            <AppBar>
+            <AppBar className={classes.appBar}>
                 <Toolbar>
                     <Button onClick={() => history.push('/', null)} color='inherit'>
-                        <Typography variant='h6' color='inherit'>
-                            Best Social Media Not
+                        <Typography variant='title' color='inherit'>
+                            Bug Free Lamp
                         </Typography>
                     </Button>
                     <div className={classes.flexGlow} />

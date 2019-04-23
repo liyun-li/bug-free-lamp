@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Typography } from '@material-ui/core';
 import { IStore } from 'src/store';
 import { connect } from 'react-redux';
+import Chat from 'src/Chat';
 
 interface ILandingProps extends ReturnType<typeof mapStateToProps> { }
 
@@ -22,7 +23,7 @@ class Landing extends React.Component<ILandingProps> {
                 </React.Fragment>
             )
             || (
-                <React.Fragment />
+                <Chat />
             );
     }
 }
