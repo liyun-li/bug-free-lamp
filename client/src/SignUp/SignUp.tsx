@@ -8,6 +8,8 @@ import { setSignUpDialogDisplay } from 'src/store/dialog';
 import { IStore } from 'src/store/store';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { setAlertBox } from 'src/store/alertBox';
+import { setOverlayDisplay } from 'src/store/overlay';
+import { setLoginStatus } from 'src/store/profile';
 
 const mapStateToProps = (state: IStore) => ({
     display: state.dialog.signUpDisplay
@@ -22,6 +24,12 @@ const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
             display: true,
             text: errorMessage
         }));
+    },
+    setLoginStatus: (signedIn: boolean) => {
+        dispatch(setLoginStatus(signedIn));
+    },
+    setOverlayDisplay: (display: boolean) => {
+        dispatch(setOverlayDisplay(display));
     }
 });
 
@@ -42,7 +50,7 @@ class SignUp extends React.Component<ISignUpProps, ISignUpState> {
     }
 
     render() {
-        const { display, setDisplay, showError } = this.props;
+        const { display, setDisplay, showError, setOverlayDisplay, setLoginStatus } = this.props;
         const { username, password } = this.state;
 
         return (
@@ -54,12 +62,14 @@ class SignUp extends React.Component<ISignUpProps, ISignUpState> {
                     {
                         text: 'Sign Up',
                         func: () => {
-                            // Bad code
+                            setOverlayDisplay(true);
                             axios.post('http://127.0.0.1:3001/register', {
                                 username,
                                 password
                             }).then(_response => {
+                                setLoginStatus(true);
                                 setDisplay(false);
+                                setOverlayDisplay(false);
                             }).catch(error => {
                                 const response = error.response;
                                 if (response && response.data)

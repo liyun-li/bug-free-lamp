@@ -8,6 +8,7 @@ import { setSignInDialogDisplay } from 'src/store/dialog';
 import { IStore } from 'src/store/store';
 import { setLoginStatus } from 'src/store/profile';
 import { setAlertBox } from 'src/store/alertBox';
+import { setOverlayDisplay } from 'src/store/overlay';
 
 const mapStateToProps = (state: IStore) => ({
     display: state.dialog.signInDisplay
@@ -25,6 +26,9 @@ const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
             display: true,
             text: errorMessage
         }));
+    },
+    setOverlayDisplay: (display: boolean) => {
+        dispatch(setOverlayDisplay(display));
     }
 });
 
@@ -44,7 +48,7 @@ class SignIn extends React.Component<ISignInProps, ISignInState> {
     }
 
     render() {
-        const { display, setDisplay, setLoginStatus, showError } = this.props;
+        const { display, setDisplay, setLoginStatus, showError, setOverlayDisplay } = this.props;
         const { username, password } = this.state;
 
         return (
@@ -56,12 +60,14 @@ class SignIn extends React.Component<ISignInProps, ISignInState> {
                     {
                         text: 'Sign In',
                         func: () => {
+                            setOverlayDisplay(true);
                             axios.post('http://127.0.0.1:3001/login', {
                                 username,
                                 password
                             }).then(_response => {
-                                setDisplay(false);
                                 setLoginStatus(true);
+                                setDisplay(false);
+                                setOverlayDisplay(false);
                             }).catch(error => {
                                 const response = error.response;
                                 if (response && response.data)

@@ -13,7 +13,7 @@ const actionCreator = actionCreatorFactory('Profile');
 export const setLoginStatus = actionCreator<IProfile['signedIn']>('setLoginStatus');
 
 export const profileReducer = reducerWithInitialState(INITIAL_STATE)
-    .case(setLoginStatus, (state: IProfile, payload) => ({
+    .case(setLoginStatus, (state, payload): IProfile => ({
         ...state,
-        signeIn: payload
+        signedIn: payload
     }));

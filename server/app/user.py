@@ -35,3 +35,8 @@ def register():
         return 'Username exists', 400
 
     return '', 204
+
+
+@user.route('/logout', methods=['POST'])
+def logout():
+    return '', 204

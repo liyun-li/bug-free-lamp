@@ -10,6 +10,8 @@ import SignIn from 'src/SignIn';
 import SignUp from 'src/SignUp';
 import { IStore } from 'src/store';
 import { setSignInDialogDisplay, setSignUpDialogDisplay } from 'src/store/dialog';
+import axios from 'axios';
+import { setLoginStatus } from 'src/store/profile';
 
 interface INavigationStyles {
     menuIcon: string;
@@ -51,12 +53,15 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     },
     setSignUpDialogDisplay: (display: boolean) => {
         dispatch(setSignUpDialogDisplay(display));
+    },
+    signOut: () => {
+        dispatch(setLoginStatus(false));
     }
 });
 
 class Navigation extends React.Component<INavigationProps> {
     render() {
-        const { classes, signedIn, setSignInDialogDisplay, setSignUpDialogDisplay } = this.props;
+        const { classes, signedIn, setSignInDialogDisplay, setSignUpDialogDisplay, signOut } = this.props;
 
         return (
             <AppBar>
@@ -79,7 +84,11 @@ class Navigation extends React.Component<INavigationProps> {
                                 <IconButton>
                                     <AccountCircle className={classes.iconOnTheRight} />
                                 </IconButton>
-                                <IconButton>
+                                <IconButton onClick={() => {
+                                    axios.post('http://127.0.0.1:3001/logout').then(_response => {
+                                        signOut();
+                                    });
+                                }}>
                                     <ExitToApp className={classes.iconOnTheRight} />
                                 </IconButton>
                             </React.Fragment>
@@ -105,4 +114,4 @@ class Navigation extends React.Component<INavigationProps> {
     }
 }
 
-export default withStyles(styles)(connect(mapStateToProps, mapDispatchToProps)(Navigation));
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(Navigation));
