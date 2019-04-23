@@ -6,6 +6,8 @@ import PeopleIcon from '@material-ui/icons/People';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
+import SignIn from 'src/SignIn';
+import SignUp from 'src/SignUp';
 import { IStore } from 'src/store';
 import { setSignInDialogDisplay, setSignUpDialogDisplay } from 'src/store/dialog';
 
@@ -83,6 +85,8 @@ class Navigation extends React.Component<INavigationProps> {
                             </React.Fragment>
                         ) || (
                             <React.Fragment>
+                                <SignIn />
+                                <SignUp />
                                 <Button className={classes.iconOnTheRight} variant='outlined'
                                     onClick={() => setSignUpDialogDisplay(true)}>
                                     Sign Up

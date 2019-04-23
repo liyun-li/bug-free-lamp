@@ -21,7 +21,10 @@ class AppDialog extends React.Component<IDialogProps> {
         const { title, description, display, setDisplay } = this.props;
 
         const dialogButtons = (this.props.buttons || []).map(button => (
-            <Button onClick={button.func}>{button.text}</Button>
+            <Button key={`button-${button.text}`}
+                onClick={button.func}>
+                {button.text}
+            </Button>
         ));
 
         return (
