@@ -13,7 +13,7 @@ def login():
     username = data.get('username')
     password = data.get('password')
 
-    if not check_fields(username, password):
+    if not check_fields([username, password]):
         return 'All fields must not be empty.', 400
 
     if not check_username_password(username, password):
@@ -28,7 +28,7 @@ def register():
     username = data.get('username')
     password = data.get('password')
 
-    if not check_fields(username, password):
+    if not check_fields([username, password]):
         return 'All fields must not be empty.', 400
 
     if not register_user(username, password):

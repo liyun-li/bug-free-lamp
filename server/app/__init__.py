@@ -27,6 +27,6 @@ def create_app():
     app.register_blueprint(user)
 
     # set CORS to accept queries from anywhere
-    CORS(app, resources={r"/*": {'origins': ['0.0.0.0']}})
+    CORS(app, resources={r"/*": {'origins': ['*']}})
 
     return app
