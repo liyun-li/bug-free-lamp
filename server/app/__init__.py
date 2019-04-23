@@ -1,6 +1,7 @@
 def create_app():
     from flask import Flask
     from flask_cors import CORS
+    from flask_session import Session
 
     from app.views import views
     from app.user import user
@@ -28,5 +29,8 @@ def create_app():
 
     # set CORS to accept queries from anywhere
     CORS(app, resources={r"/*": {'origins': ['*']}})
+
+    # enable the use of sessions
+    Session(app)
 
     return app

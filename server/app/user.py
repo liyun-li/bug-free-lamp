@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, session
 
 from app.utils import check_fields, get_user, register_user, \
     check_username_password, get_post_data
@@ -19,6 +19,8 @@ def login():
     if not check_username_password(username, password):
         return 'Invalid credential', 400
 
+    session['username'] = username
+
     return '', 204
 
 
@@ -34,9 +36,12 @@ def register():
     if not register_user(username, password):
         return 'Username exists', 400
 
+    session['username'] = username
+
     return '', 204
 
 
 @user.route('/logout', methods=['POST'])
 def logout():
+    session.clear()
     return '', 204
