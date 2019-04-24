@@ -1,14 +1,14 @@
 import { TextField } from '@material-ui/core';
-import axios from 'axios';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Action, Dispatch } from 'redux';
 import AppDialog from 'src/AppDialog';
-import { setSignInDialogDisplay } from 'src/store/dialog';
-import { IStore } from 'src/store/store';
-import { setLoginStatus } from 'src/store/profile';
+import { postRequest } from 'src/httpRequest';
 import { setAlertBox } from 'src/store/alertBox';
+import { setSignInDialogDisplay } from 'src/store/dialog';
 import { setOverlayDisplay } from 'src/store/overlay';
+import { setLoginStatus } from 'src/store/profile';
+import { IStore } from 'src/store/store';
 
 const mapStateToProps = (state: IStore) => ({
     display: state.dialog.signInDisplay
@@ -61,7 +61,7 @@ class SignIn extends React.Component<ISignInProps, ISignInState> {
                         text: 'Sign In',
                         func: () => {
                             setOverlayDisplay(true);
-                            axios.post('http://127.0.0.1:3001/login', {
+                            postRequest('/login', {
                                 username,
                                 password
                             }).then(_response => {

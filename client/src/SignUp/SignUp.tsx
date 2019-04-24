@@ -1,15 +1,15 @@
 import { TextField } from '@material-ui/core';
-import axios from 'axios';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { RouteComponentProps, withRouter } from 'react-router';
 import { Action, Dispatch } from 'redux';
 import AppDialog from 'src/AppDialog';
-import { setSignUpDialogDisplay } from 'src/store/dialog';
-import { IStore } from 'src/store/store';
-import { RouteComponentProps, withRouter } from 'react-router';
+import { postRequest } from 'src/httpRequest';
 import { setAlertBox } from 'src/store/alertBox';
+import { setSignUpDialogDisplay } from 'src/store/dialog';
 import { setOverlayDisplay } from 'src/store/overlay';
 import { setLoginStatus } from 'src/store/profile';
+import { IStore } from 'src/store/store';
 
 const mapStateToProps = (state: IStore) => ({
     display: state.dialog.signUpDisplay
@@ -63,7 +63,7 @@ class SignUp extends React.Component<ISignUpProps, ISignUpState> {
                         text: 'Sign Up',
                         func: () => {
                             setOverlayDisplay(true);
-                            axios.post('http://127.0.0.1:3001/register', {
+                            postRequest('/register', {
                                 username,
                                 password
                             }).then(_response => {
