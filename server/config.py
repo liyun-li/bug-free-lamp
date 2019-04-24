@@ -29,7 +29,7 @@ class Config:
         SQLALCHEMY_DATABASE_URI = 'sqlite:///app.db'
         DEBUG = True
     elif not (dbuser and dbhost and dbname):
-        print('.env configuration incomplete')
+        print('Database configuration not provided')
         exit(1)
 
     # session
@@ -41,6 +41,9 @@ class Config:
     SESSION_FILE_DIR = '/tmp'
 
     SECRET_KEY = getenv('SERVER_KEY')
+    if not SECRET_KEY:
+        print('A secret key is required.')
+        exit(1)
 
     # track DB mod
     SQLALCHEMY_TRACK_MODIFICATIONS = True
