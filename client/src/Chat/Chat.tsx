@@ -1,4 +1,4 @@
-import { createStyles, Drawer, List, Theme, withStyles, ListItem, Typography, Toolbar } from '@material-ui/core';
+import { createStyles, Drawer, List, ListItem, Toolbar, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 
 interface IChatStyles {
@@ -9,7 +9,7 @@ interface IChatProps {
     classes: IChatStyles;
 }
 
-const styles = (theme: Theme) => createStyles({
+const styles = createStyles({
     contacts: {
 
     }

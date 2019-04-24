@@ -24,20 +24,3 @@ def check_fields(fields):
 
 def get_user(username):
     return User.query.filter_by(username=username).first()
-
-
-def register_user(username, password):
-    user = get_user(username)
-    if not user:  # now we register
-        password_hash = hashpw(password.encode('utf-8'), gensalt())
-        user = User(username=username, password=password_hash)
-        db.session.add(user)
-        return safer_commit()
-    return False
-
-
-def check_username_password(username, password):
-    user = get_user(username)
-    if not user:
-        return False
-    return checkpw(password.encode('utf-8'), user.password)
