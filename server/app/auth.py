@@ -37,7 +37,7 @@ def register():
     user = get_user(username)
 
     if user:
-        return 'Username exists'
+        return 'Username exists', 400
 
     # now we register
     password_hash = hashpw(password.encode('utf-8'), gensalt())

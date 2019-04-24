@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dispatch } from 'redux';
 import { routes } from 'src/constants';
-import { postRequest } from 'src/httpRequest';
+import { getRequest } from 'src/httpRequest';
 import SignIn from 'src/SignIn';
 import SignUp from 'src/SignUp';
 import { IStore } from 'src/store';
@@ -94,7 +94,7 @@ class Navigation extends React.Component<INavigationProps> {
                                     <AccountCircle className={classes.iconOnTheRight} />
                                 </IconButton>
                                 <IconButton onClick={() => {
-                                    postRequest('/logout').then(_response => {
+                                    getRequest('/user/logout').then(_response => {
                                         signOut();
                                     });
                                 }}>

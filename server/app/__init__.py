@@ -30,10 +30,7 @@ def create_app():
     app.register_blueprint(auth)
 
     # set CORS to accept queries from anywhere
-    CORS(app, resources={r"/*": {
-        'origins': ['*'],
-        'supports_credentials': True
-    }})
+    CORS(app, supports_credentials=True)
 
     # enable the use of sessions
     Session(app)

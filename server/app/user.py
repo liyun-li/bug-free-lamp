@@ -3,22 +3,28 @@ from json import dumps
 from app.models import RequestStatus, Contact
 from app.utils import check_fields, get_user
 
-user = Blueprint('user', __name__)
+base_route = 'user'
+user = Blueprint(base_route, __name__)
 
 
 @user.before_request
 def before_request_user():
-    if not session.get('username'):
+    if request.method != 'OPTIONS' and not session.get('username'):
         return 'Unauthorized', 400
 
 
-@user.route('/logout', methods=['POST'])
+@user.route(f'/{base_route}/hi')
+def hi():
+    return '', 204
+
+
+@user.route(f'/{base_route}/logout')
 def logout():
     session.clear()
     return '', 204
 
 
-@user.route('/user/search', methods=['POST'])
+@user.route(f'/{base_route}/search', methods=['POST'])
 def search_user():
     data = get_post_data()
     username = data.get('username')
@@ -33,7 +39,7 @@ def search_user():
     return dumps(user), 204
 
 
-@user.route('/user/add', methods=['POST'])
+@user.route(f'/{base_route}/add', methods=['POST'])
 def add_user():
     data = get_post_data()
     username = data.get('username')

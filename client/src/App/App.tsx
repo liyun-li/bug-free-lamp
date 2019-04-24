@@ -1,6 +1,8 @@
+import { Toolbar } from '@material-ui/core';
 import * as React from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import AlertBox from 'src/AlertBox';
+import withAuthentication from 'src/Authentication';
 import Chat from 'src/Chat';
 import { routes } from 'src/constants';
 import Group from 'src/Group';
@@ -9,7 +11,6 @@ import Navigation from 'src/Navigation';
 import Overlay from 'src/Overlay';
 import Post from 'src/Post';
 import Profile from 'src/Profile';
-import { Toolbar } from '@material-ui/core';
 
 class App extends React.Component {
     public render() {
@@ -31,4 +32,4 @@ class App extends React.Component {
     }
 }
 
-export default App;
+export default withAuthentication(App);
