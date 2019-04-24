@@ -6,3 +6,7 @@ export enum routes {
     post = '/post',
     friends = '/contacts'
 }
+
+export enum keyCodes {
+    enter = 13
+}

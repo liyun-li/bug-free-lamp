@@ -3,6 +3,7 @@ import ReadIcon from '@material-ui/icons/Drafts';
 import EnterIcon from '@material-ui/icons/KeyboardReturn';
 import UnreadIcon from '@material-ui/icons/Mail';
 import * as React from 'react';
+import { keyCodes } from 'src/constants';
 
 interface IChatStyles {
     listLeft: string;
@@ -20,6 +21,10 @@ interface IChatStyles {
 
 interface IChatProps {
     classes: IChatStyles;
+}
+
+interface IChatState {
+    message: string;
 }
 
 const listWidth = 240;
@@ -68,9 +73,14 @@ const styles = createStyles({
     }
 });
 
-class Chat extends React.Component<IChatProps> {
+class Chat extends React.Component<IChatProps, IChatState> {
+    state: IChatState = {
+        message: ''
+    }
+
     render() {
         const { classes } = this.props;
+        const { message } = this.state;
 
         return (
             <React.Fragment>
@@ -111,6 +121,19 @@ class Chat extends React.Component<IChatProps> {
                                     <TextField className={classes.inputBox}
                                         placeholder='Hit Enter to send text.'
                                         variant='outlined' margin='dense'
+                                        onChange={(e) => this.setState({
+                                            ...this.state,
+                                            message: e.target.value
+                                        })} value={message}
+                                        onKeyDown={(e) => {
+                                            if (e.keyCode === keyCodes.enter) {
+                                                // TODO: you know what to do
+                                                this.setState({
+                                                    ...this.state,
+                                                    message: ''
+                                                });
+                                            }
+                                        }}
                                     />
                                 </Grid>
                                 <Grid item xs={1} className={classes.enterButton}>
