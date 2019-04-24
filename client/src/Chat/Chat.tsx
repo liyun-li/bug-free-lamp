@@ -15,6 +15,7 @@ interface IChatStyles {
     messagePanel: string;
     messagePanelGrid: string;
     inputBox: string;
+    enterButton: string;
 }
 
 interface IChatProps {
@@ -58,9 +59,12 @@ const styles = createStyles({
         flexGrow: 1
     },
     inputBox: {
-        margin: '16px 16px 16px 16px',
+        margin: '16px 0 16px 16px',
         padding: 0,
         display: 'flex'
+    },
+    enterButton: {
+        textAlign: 'center'
     }
 });
 
@@ -102,14 +106,14 @@ class Chat extends React.Component<IChatProps> {
                     <Grid container direction='row' justify='center' alignItems='flex-end'
                         className={classes.messagePanelGrid}>
                         <Grid item xs={12}>
-                            <Grid container justify='center' alignItems='center'>
+                            <Grid container direction='row' justify='center' alignItems='center'>
                                 <Grid item xs={11}>
                                     <TextField className={classes.inputBox}
                                         placeholder='Hit Enter to send text.'
                                         variant='outlined' margin='dense'
                                     />
                                 </Grid>
-                                <Grid item xs={1}>
+                                <Grid item xs={1} className={classes.enterButton}>
                                     <IconButton>
                                         <EnterIcon />
                                     </IconButton>
