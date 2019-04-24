@@ -1,8 +1,11 @@
-import { createStyles, Drawer, List, ListItem, Toolbar, Typography, withStyles } from '@material-ui/core';
+import { createStyles, Divider, Drawer, List, ListItem, Toolbar, withStyles, ListItemText, ListItemAvatar } from '@material-ui/core';
+import MailIcon from '@material-ui/icons/Mail';
 import * as React from 'react';
 
 interface IChatStyles {
-    contacts: string;
+    contactDrawer: string;
+    contactList: string;
+    contactListHeader: string;
 }
 
 interface IChatProps {
@@ -10,23 +13,40 @@ interface IChatProps {
 }
 
 const styles = createStyles({
-    contacts: {
-
+    contactDrawer: {
+        width: '240px'
+    },
+    contactList: {
+        width: '240px'
+    },
+    contactListHeader: {
     }
 });
 
 class Chat extends React.Component<IChatProps> {
     render() {
+        const { classes } = this.props;
+
         return (
             <React.Fragment>
-                <Drawer variant='permanent'>
+                <Drawer variant='permanent' className={classes.contactDrawer}>
                     <Toolbar />
-                    <List>
+                    <ListItem>
+                        <ListItemAvatar>
+                            <MailIcon />
+                        </ListItemAvatar>
+                        <ListItemText>Inbox</ListItemText>
+                    </ListItem>
+                    <Divider />
+                    <List className={classes.contactList}>
                         {
-                            [1, 2, 3, 4, 5, 6, 7, 8, 9].map(e => (
-                                <ListItem>
-                                    <Typography>{`${e} + ${e} = ${e + e}`}</Typography>
-                                </ListItem>
+                            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map(e => (
+                                <React.Fragment>
+                                    <ListItem>
+                                        <ListItemText>{`${e} + ${e} = ${e + e}`}</ListItemText>
+                                    </ListItem>
+                                    <Divider />
+                                </React.Fragment>
                             ))
                         }
                     </List>
