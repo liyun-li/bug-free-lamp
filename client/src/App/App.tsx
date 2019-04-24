@@ -21,11 +21,11 @@ class App extends React.Component {
                 <Navigation />
                 <Toolbar />
                 <Switch>
-                    <Route path={routes.landing} component={Landing} />
                     <Route path={routes.chat} component={Chat} />
                     <Route path={routes.group} component={Group} />
                     <Route path={routes.profile} component={Profile} />
                     <Route path={routes.post} component={Post} />
+                    <Route path={routes.landing} component={Landing} />
                 </Switch>
             </BrowserRouter>
         );
