@@ -1,6 +1,7 @@
 from flask import Blueprint, request, session
 from bcrypt import hashpw, checkpw, gensalt
 from app.models import db, User
+from app.responses import ErrorMessage
 from app.utils import check_fields, get_user, get_post_data, safer_commit
 
 
@@ -14,11 +15,11 @@ def login():
     password = data.get('password')
 
     if not check_fields([username, password]):
-        return 'All fields must not be empty.', 400
+        return ErrorMessage.EMPTY_FIELDS, 400
 
     user = get_user(username)
     if not (user and checkpw(password.encode('utf-8'), user.password)):
-        return 'Invalid credenial', 400
+        return ErrorMessage.INVALID_CREDENTIAL, 400
 
     session['username'] = username
 
@@ -32,12 +33,12 @@ def register():
     password = data.get('password')
 
     if not check_fields([username, password]):
-        return 'All fields must not be empty.', 400
+        return ErrorMessage.EMPTY_FIELDS, 400
 
     user = get_user(username)
 
     if user:
-        return 'Username exists', 400
+        return ErrorMessage.USERNAME_ALREADY_EXISTS, 400
 
     # now we register
     password_hash = hashpw(password.encode('utf-8'), gensalt())
@@ -45,7 +46,7 @@ def register():
     db.session.add(user)
 
     if not safer_commit():
-        return 'Error during registration', 400
+        return ErrorMessage.REGISTRATION_ERROR, 400
 
     session['username'] = username
 
