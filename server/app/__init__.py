@@ -22,10 +22,12 @@ def create_app():
     with app.app_context():
         if debug_mode:
             SqlAlchemySessionInterface(app, db, 'sessions', 'sess_')
-            db.drop_all()
+            # db.drop_all()
         db.create_all()
-
     app.db = db
+
+    # enable the use of sessions
+    Session(app)
 
     # iniialize socketio
     socketio.init_app(app)
@@ -39,8 +41,5 @@ def create_app():
 
     # set CORS to accept queries from anywhere
     CORS(app, supports_credentials=True)
-
-    # enable the use of sessions
-    Session(app)
 
     return app

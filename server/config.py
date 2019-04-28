@@ -34,15 +34,14 @@ class Config:
         print('Database configuration not provided')
         exit(1)
 
-    # Caching settings
+    # session settings
     if DEV_MODE:
         SESSION_TYPE = 'sqlalchemy'
-        SECRET_KEY = urandom(64)
     else:
         SESSION_TYPE = 'redis'
         SESSION_FILE_DIR = Redis(host='app_cache', port=6379)
-        SECRET_KEY = getenv('SERVER_KEY')
 
+    SECRET_KEY = getenv('SERVER_KEY')
     if not SECRET_KEY:
         print('A secret key is required.')
         exit(1)
