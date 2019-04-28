@@ -2,20 +2,23 @@ import { combineReducers, createStore } from 'redux';
 import { alertBoxReducer, IAlertBox } from './alertBox';
 import { dialogReducer, IDialog } from './dialog';
 import { IOverlay, overlayReducer } from './overlay';
-import { IProfile, profileReducer } from './profile';
+import { IUser, userReducer } from './user';
+import { IChat, chatReducer } from './chat';
 
 export interface IStore {
     overlay: IOverlay;
-    profile: IProfile;
+    user: IUser;
     dialog: IDialog;
     alertBox: IAlertBox;
+    chat: IChat;
 }
 
 const reducers = {
     overlay: overlayReducer,
-    profile: profileReducer,
+    user: userReducer,
     dialog: dialogReducer,
-    alertBox: alertBoxReducer
+    alertBox: alertBoxReducer,
+    chat: chatReducer
 };
 
 const rootReducer = combineReducers<IStore>(reducers);
