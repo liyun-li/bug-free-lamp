@@ -50,6 +50,9 @@ def add_user():
     if not check_fields([username]):
         return bad_request(ErrorMessage.EMPTY_FIELDS)
 
+    if session.get('username') == username:
+        return bad_request('Did you just try to befriend yourself?')
+
     if not get_user(username):
         return bad_request(ErrorMessage.USER_NOT_FOUND)
 
@@ -97,6 +100,38 @@ def accept_friend_request():
     friendship.status = RequestStatus.accepted
 
     return commit_response()
+
+
+@user.route(f'/{base_route}/reject', methods=['POST'])
+def reject_friend_request():
+    data = get_post_data()
+    username = data.get('username')
+
+    if not check_fields([username]):
+        return bad_request(ErrorMessage.EMPTY_FIELDS)
+
+    # Find friendship
+    friendship = get_friendship(username, session.get('username'))
+
+    if not friendship:
+        return bad_request(ErrorMessage.USER_NOT_FOUND)
+
+    elif friendship.status == RequestStatus.accepted:
+        return bad_request(ErrorMessage.ALREADY_FRIENDS)
+
+    db.session.delete(friendship)
+    return commit_response()
+
+
+@user.route(f'/{base_route}/friend_requests', methods=['GET'])
+def get_requests():
+    data = get_post_data()
+    me = data.get('session')
+
+    requests = Friendship.query.filter_by(user2=me).all()
+    senders = [request.user1 for request in requests]
+
+    return good_request(dumps(senders), 200)
 
 
 @user.route(f'/{base_route}/cut_ties', methods=['POST'])
