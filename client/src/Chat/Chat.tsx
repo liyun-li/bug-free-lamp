@@ -1,10 +1,18 @@
 import { Button, createStyles, Divider, Drawer, Grid, IconButton, List, ListItem, ListItemIcon, ListItemText, Paper, TextField, Toolbar, withStyles } from '@material-ui/core';
-import ReadIcon from '@material-ui/icons/Drafts';
-import EnterIcon from '@material-ui/icons/KeyboardReturn';
-import UnreadIcon from '@material-ui/icons/Mail';
+import { People, KeyboardReturn } from '@material-ui/icons';
 import * as React from 'react';
 import { keyCodes } from 'src/constants';
+import * as io from 'socket.io-client';
+import { getServerEndpoint } from 'src/utils';
+import { getRequest } from 'src/httpRequest';
+import { IStore } from 'src/store/store';
+import { Action, Dispatch } from 'redux';
+import { setFriends } from 'src/store/user';
+import { connect } from 'react-redux';
+import UserSearchDialog from 'src/UserSearchDialog';
+import { setUserSearchDialogDisplay } from 'src/store/dialog';
 
+// #region interfaces
 interface IChatStyles {
     listLeft: string;
     listRight: string;
@@ -19,14 +27,25 @@ interface IChatStyles {
     enterButton: string;
 }
 
-interface IChatProps {
+interface IChatProps extends
+    ReturnType<typeof mapStateToProps>,
+    ReturnType<typeof mapDispatchToProps> {
     classes: IChatStyles;
+}
+
+interface IMessageResponse {
+    message: string;
+    timestamp: number;
+    username: string;
 }
 
 interface IChatState {
     message: string;
+    socket: SocketIOClientStatic['Socket'];
 }
+// #endregion
 
+// #region styles
 const listWidth = 240;
 
 const styles = createStyles({
@@ -72,18 +91,55 @@ const styles = createStyles({
         textAlign: 'center'
     }
 });
+// #endregion
+
+// #region react-redux mappers
+const mapStateToProps = (state: IStore) => ({
+    friends: state.user.friends
+});
+
+const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
+    setFriends: (friends: IStore['user']['friends']) => dispatch(setFriends(friends)),
+    setUserSearchDialogDisplay: (display: boolean) => dispatch(setUserSearchDialogDisplay(display))
+});
+// #endregion
 
 class Chat extends React.Component<IChatProps, IChatState> {
-    state: IChatState = {
-        message: ''
+    constructor(props: IChatProps) {
+        super(props);
+
+        const socket = io.connect(`${getServerEndpoint()}/chat`);
+        socket.on('message', (response: IMessageResponse) => {
+            console.log(response);
+        });
+
+        this.state = {
+            message: '',
+            socket
+        };
+    }
+
+    componentDidMount() {
+        const { setFriends } = this.props;
+        getRequest('/chat/get').then(response => {
+            const friends = response.data;
+            if (friends)
+                setFriends(friends);
+        });
+    }
+
+    componentWillUnmount() {
+        const { socket } = this.state;
+        socket.emit('leave_chat');
     }
 
     render() {
-        const { classes } = this.props;
-        const { message } = this.state;
+        const { classes, friends, setUserSearchDialogDisplay } = this.props;
+        const { message, socket } = this.state;
 
         return (
             <React.Fragment>
+                {/* Left Drawer */}
                 <Drawer variant='permanent' className={classes.listLeft}
                     classes={{
                         paper: classes.paperLeft
@@ -97,13 +153,11 @@ class Chat extends React.Component<IChatProps, IChatState> {
                         </ListItem>
                         <Divider />
                         {
-                            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map(e => (
+                            friends.map(friend => (
                                 <React.Fragment>
-                                    <ListItem button key={e}>
-                                        <ListItemIcon>
-                                            {e % 2 === 0 && <UnreadIcon /> || <ReadIcon />}
-                                        </ListItemIcon>
-                                        <ListItemText>{`${e} + ${e} = ${e + e}`}</ListItemText>
+                                    <ListItem button key={friend.username}>
+                                        <ListItemIcon><People /></ListItemIcon>
+                                        <ListItemText>{friend.username}</ListItemText>
                                     </ListItem>
                                     <Divider />
                                 </React.Fragment>
@@ -112,6 +166,7 @@ class Chat extends React.Component<IChatProps, IChatState> {
                     </List>
                 </Drawer>
 
+                {/* Chat Panel */}
                 <Paper className={classes.messagePanel}>
                     <Grid container direction='row' justify='center' alignItems='flex-end'
                         className={classes.messagePanelGrid}>
@@ -127,7 +182,10 @@ class Chat extends React.Component<IChatProps, IChatState> {
                                         })} value={message}
                                         onKeyDown={(e) => {
                                             if (e.keyCode === keyCodes.enter) {
-                                                // TODO: you know what to do
+                                                // Emit message to server
+                                                socket.emit('message', message);
+
+                                                // Clear message box
                                                 this.setState({
                                                     ...this.state,
                                                     message: ''
@@ -138,7 +196,7 @@ class Chat extends React.Component<IChatProps, IChatState> {
                                 </Grid>
                                 <Grid item xs={1} className={classes.enterButton}>
                                     <IconButton>
-                                        <EnterIcon />
+                                        <KeyboardReturn />
                                     </IconButton>
                                 </Grid>
                             </Grid>
@@ -146,6 +204,7 @@ class Chat extends React.Component<IChatProps, IChatState> {
                     </Grid>
                 </Paper>
 
+                {/* Right Drawer */}
                 <Drawer variant='permanent' anchor='right' className={classes.listRight}
                     classes={{
                         paper: classes.paperRight
@@ -159,10 +218,15 @@ class Chat extends React.Component<IChatProps, IChatState> {
                         </ListItem>
                         <Divider />
                         <ListItem className={classes.actionItem}>
-                            <Button fullWidth color='primary'>Search User</Button>
+                            <UserSearchDialog />
+                            <Button fullWidth color='primary' onClick={() => {
+                                setUserSearchDialogDisplay(true);
+                            }}>Search User</Button>
                         </ListItem>
                         <ListItem className={classes.actionItem}>
-                            <Button fullWidth color='primary'>Refresh Key</Button>
+                            <Button fullWidth color='primary' onClick={() => {
+                                
+                            }}>Refresh Key</Button>
                         </ListItem>
                     </List>
                 </Drawer>
@@ -171,4 +235,4 @@ class Chat extends React.Component<IChatProps, IChatState> {
     }
 }
 
-export default withStyles(styles)(Chat);
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(Chat));
