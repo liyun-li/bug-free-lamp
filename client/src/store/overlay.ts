@@ -9,7 +9,7 @@ const INITIAL_STATE: IOverlay = {
     display: false
 }
 
-const actionCreator = actionCreatorFactory('Profile');
+const actionCreator = actionCreatorFactory('Overlay');
 export const setOverlayDisplay = actionCreator<IOverlay['display']>('setOverlayDisplay');
 
 export const overlayReducer = reducerWithInitialState(INITIAL_STATE)
