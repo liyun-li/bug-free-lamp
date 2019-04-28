@@ -1,9 +1,11 @@
 from dotenv import load_dotenv
 from pathlib import Path
 from redis import Redis
-from os import getenv
+from os import getenv, urandom
 
 load_dotenv(verbose=True)
+
+DEV_MODE = getenv('DEVELOPMENT_MODE')
 
 
 class Config:
@@ -25,22 +27,22 @@ class Config:
 
     DEBUG = False
 
-    if getenv('DEVELOPMENT_MODE'):
+    if DEV_MODE:
         SQLALCHEMY_DATABASE_URI = 'sqlite:///app.db'
         DEBUG = True
     elif not (dbuser and dbhost and dbname):
         print('Database configuration not provided')
         exit(1)
 
-    # session
-    # https://pythonhosted.org/Flask-Session/
-    # 'filesystem' is an alternative if you don't want to use Redis
-    # SESSION_TYPE = 'redis'
-    # SESSION_REDIS = Redis(host='app_cache', port=6379)
-    SESSION_TYPE = 'filesystem'
-    SESSION_FILE_DIR = '/tmp'
+    # Caching settings
+    if DEV_MODE:
+        SESSION_TYPE = 'sqlalchemy'
+        SECRET_KEY = urandom(64)
+    else:
+        SESSION_TYPE = 'redis'
+        SESSION_FILE_DIR = Redis(host='app_cache', port=6379)
+        SECRET_KEY = getenv('SERVER_KEY')
 
-    SECRET_KEY = getenv('SERVER_KEY')
     if not SECRET_KEY:
         print('A secret key is required.')
         exit(1)
