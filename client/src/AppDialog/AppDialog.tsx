@@ -3,13 +3,13 @@ import * as React from 'react';
 
 interface IDialogProps {
     title: string;
-    description: string;
+    description?: string;
     buttons?: {
         text: string;
         func: () => void;
     }[];
     display: boolean;
-    setDisplay: (display: boolean) => void;
+    hideDisplay: () => void;
 }
 
 class AppDialog extends React.Component<IDialogProps> {
@@ -18,7 +18,7 @@ class AppDialog extends React.Component<IDialogProps> {
     }
 
     render() {
-        const { title, description, display, setDisplay } = this.props;
+        const { title, description, display, hideDisplay } = this.props;
 
         const dialogButtons = (this.props.buttons || []).map(button => (
             <Button key={`button-${button.text}`}
@@ -28,10 +28,13 @@ class AppDialog extends React.Component<IDialogProps> {
         ));
 
         return (
-            <Dialog open={display} onClose={() => setDisplay(false)}>
+            <Dialog open={display} onClose={hideDisplay}>
                 <DialogTitle>{title}</DialogTitle>
                 <DialogContent>
-                    <DialogContentText>{description}</DialogContentText>
+                    {
+                        description &&
+                        <DialogContentText>{description}</DialogContentText>
+                    }
                     {this.props.children}
                 </DialogContent>
                 <DialogActions>
