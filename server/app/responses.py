@@ -14,8 +14,12 @@ class ErrorMessage:
 
 
 def bad_request(error_message, status_code=400):
+    if status_code < 400:
+        raise Exception('Bad requests or server errors only!')
     return error_message, status_code
 
 
 def good_request(message='', status_code=204):
+    if status_code >= 300:
+        raise Exception('Successful requests only!')
     return message, status_code
