@@ -32,6 +32,7 @@ class Friendship(db.Model):
     user2 = db.Column(db.String(255), db.ForeignKey(
         f'{User.__tablename__}.username'), primary_key=True)
     status = db.Column(db.Enum(RequestStatus))
+    room = db.Column(db.String(255))
 
 
 class Message(db.Model):
@@ -47,3 +48,18 @@ class Message(db.Model):
 
     read_by_sender = db.Column(db.Boolean)
     read_by_receiver = db.Column(db.Boolean)
+
+
+class Room(db.Model):
+    __tablename__ = 'message_channel'
+
+    room_id = db.Column(db.String(255), primary_key=True)
+
+
+class RoomUserMapping(db.Model):
+    __tablename__ = 'channel_user_mapping'
+
+    room = db.Column(db.String(255), db.ForeignKey(
+        f'{Room.__tablename__}.room_id'), primary_key=True)
+    user = db.Column(db.String(255), db.ForeignKey(
+        f'{User.__tablename__}.username'), primary_key=True)

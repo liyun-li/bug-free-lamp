@@ -1,9 +1,10 @@
 from flask import Blueprint, request, session
 from json import dumps
-from app.models import RequestStatus, Friendship
-from app.responses import ErrorMessage
+from os import urandom
+from app.models import db, RequestStatus, Friendship, Room
+from app.responses import ErrorMessage, bad_request, good_request
 from app.utils import check_fields, get_user, safer_commit, get_friendship, \
-    commit_response
+    commit_response, get_post_data
 
 base_route = 'user'
 user = Blueprint(base_route, __name__)
@@ -12,18 +13,18 @@ user = Blueprint(base_route, __name__)
 @user.before_request
 def before_request_user():
     if request.method != 'OPTIONS' and not session.get('username'):
-        return ErrorMessage.UNAUTHORIZED, 403
+        return bad_request(ErrorMessage.UNAUTHORIZED, 403)
 
 
 @user.route(f'/{base_route}/hi')
 def hi():
-    return '', 204
+    return good_request()
 
 
 @user.route(f'/{base_route}/logout')
 def logout():
     session.clear()
-    return '', 204
+    return good_request()
 
 
 @user.route(f'/{base_route}/search', methods=['POST'])
@@ -32,13 +33,13 @@ def search_user():
     username = data.get('username')
 
     if not check_fields([username]):
-        return ErrorMessage.EMPTY_FIELDS, 400
+        return bad_request(ErrorMessage.EMPTY_FIELDS)
 
     user = get_user(username)
     if not user:
-        return ErrorMessage.USER_NOT_FOUND, 400
+        return bad_request(ErrorMessage.USER_NOT_FOUND)
 
-    return dumps(user), 204
+    return good_request(user.username, 200)
 
 
 @user.route(f'/{base_route}/add', methods=['POST'])
@@ -47,12 +48,12 @@ def add_user():
     username = data.get('username')
 
     if not check_fields([username]):
-        return ErrorMessage.EMPTY_FIELDS, 400
+        return bad_request(ErrorMessage.EMPTY_FIELDS)
 
     if not get_user(username):
-        return ErrorMessage.USER_NOT_FOUND, 400
+        return bad_request(ErrorMessage.USER_NOT_FOUND)
 
-    friendship = get_friendship(session.get('username'), user)
+    friendship = get_friendship(session.get('username'), username)
 
     if not friendship:
         friendship = Friendship(
@@ -65,12 +66,12 @@ def add_user():
         return commit_response('Request sent.')
 
     elif friendship.status == RequestStatus.accepted:
-        return ErrorMessage.ALREADY_FRIENDS, 200
+        return good_request(ErrorMessage.ALREADY_FRIENDS, 200)
 
     elif friendship.status == RequestStatus.pending:
-        return ErrorMessage.REQUEST_ALREADY_SENT, 200
+        return good_request(ErrorMessage.REQUEST_ALREADY_SENT, 200)
 
-    return ErrorMessage.INTERNAL_SERVER_ERROR, 500
+    return bad_request(ErrorMessage.INTERNAL_SERVER_ERROR, 500)
 
 
 @user.route(f'/{base_route}/accept', methods=['POST'])
@@ -79,16 +80,26 @@ def accept_friend_request():
     username = data.get('username')
 
     if not check_fields([username]):
-        return ErrorMessage.EMPTY_FIELDS, 400
+        return bad_request(ErrorMessage.EMPTY_FIELDS)
 
+    # Establish friendship
     friendship = get_friendship(username, session.get('username'))
 
+    # Make a chat room for the 2
+    room = urandom(Room.room_id.size)
+
     if not friendship:
-        return ErrorMessage.USER_NOT_FOUND, 400
+        return bad_request(ErrorMessage.USER_NOT_FOUND)
 
     elif friendship.status == RequestStatus.accepted:
-        return ErrorMessage.ALREADY_FRIENDS, 400
+        return bad_request(ErrorMessage.ALREADY_FRIENDS)
 
     friendship.status = RequestStatus.accepted
 
     return commit_response()
+
+
+@user.route(f'/{base_route}/cut_ties', methods=['POST'])
+def cut_ties():
+    data = get_post_data()
+    username = data.get('username')

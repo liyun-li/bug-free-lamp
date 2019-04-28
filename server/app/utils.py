@@ -1,7 +1,7 @@
 from flask import request
+from sqlalchemy import and_, or_
 from bcrypt import hashpw, checkpw, gensalt
 from json import loads
-
 from app.models import db, User, Friendship, RequestStatus
 
 
@@ -45,8 +45,10 @@ def get_friendship(user1, user2):
     """
 
     return Friendship.query.filter(
-        (Friendship.user1 == user1 & Friendship.user2 == user2) |
-        (Friendship.user1 == user2 & Friendship.user2 == user1)
+        or_(
+            and_(Friendship.user1 == user1, Friendship.user2 == user2),
+            and_(Friendship.user1 == user2, Friendship.user2 == user1)
+        )
     ).first()
 
 
