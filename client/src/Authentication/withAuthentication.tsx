@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { getRequest } from 'src/httpRequest';
 import { Dispatch, Action } from 'redux';
-import { setLoginStatus } from 'src/store/profile';
+import { setLoginStatus } from 'src/store/user';
 import { connect } from 'react-redux';
 
 const withAuthentication = (Component: React.ComponentClass) => {
@@ -23,7 +23,7 @@ const withAuthentication = (Component: React.ComponentClass) => {
         }
 
         render() {
-            return <Component />;
+            return <Component {...this.props} />;
         }
     }
 

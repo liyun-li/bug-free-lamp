@@ -7,7 +7,7 @@ import Chat from 'src/Chat';
 interface ILandingProps extends ReturnType<typeof mapStateToProps> { }
 
 const mapStateToProps = (state: IStore) => ({
-    signedIn: state.profile.signedIn
+    signedIn: state.user.signedIn
 });
 
 class Landing extends React.Component<ILandingProps> {

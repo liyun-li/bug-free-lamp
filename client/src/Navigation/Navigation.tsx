@@ -13,7 +13,7 @@ import SignIn from 'src/SignIn';
 import SignUp from 'src/SignUp';
 import { IStore } from 'src/store';
 import { setSignInDialogDisplay, setSignUpDialogDisplay } from 'src/store/dialog';
-import { setLoginStatus } from 'src/store/profile';
+import { setLoginStatus } from 'src/store/user';
 
 interface INavigationStyles {
     appBar: string;
@@ -51,7 +51,7 @@ const styles = (theme: Theme) => createStyles({
 });
 
 const mapStateToProps = (state: IStore) => ({
-    signedIn: state.profile.signedIn
+    signedIn: state.user.signedIn
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

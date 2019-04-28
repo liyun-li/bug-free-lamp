@@ -8,7 +8,7 @@ import { postRequest } from 'src/httpRequest';
 import { setAlertBox } from 'src/store/alertBox';
 import { setSignUpDialogDisplay } from 'src/store/dialog';
 import { setOverlayDisplay } from 'src/store/overlay';
-import { setLoginStatus } from 'src/store/profile';
+import { setLoginStatus } from 'src/store/user';
 import { IStore } from 'src/store/store';
 
 const mapStateToProps = (state: IStore) => ({
@@ -57,7 +57,7 @@ class SignUp extends React.Component<ISignUpProps, ISignUpState> {
             <AppDialog title='Sign Up'
                 description='Please choose a username and a password.'
                 display={display}
-                setDisplay={() => setDisplay(false)}
+                hideDisplay={() => setDisplay(false)}
                 buttons={[
                     {
                         text: 'Sign Up',
