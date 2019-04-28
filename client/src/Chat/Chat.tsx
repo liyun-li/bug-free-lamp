@@ -10,7 +10,8 @@ import { Action, Dispatch } from 'redux';
 import { setFriends } from 'src/store/user';
 import { connect } from 'react-redux';
 import UserSearchDialog from 'src/UserSearchDialog';
-import { setUserSearchDialogDisplay } from 'src/store/dialog';
+import { setUserSearchDialogDisplay, setFriendRequestDialogDisplay } from 'src/store/dialog';
+import FriendRequestDialog from 'src/FriendRequestDialog';
 
 // #region interfaces
 interface IChatStyles {
@@ -100,7 +101,8 @@ const mapStateToProps = (state: IStore) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
     setFriends: (friends: IStore['user']['friends']) => dispatch(setFriends(friends)),
-    setUserSearchDialogDisplay: (display: boolean) => dispatch(setUserSearchDialogDisplay(display))
+    showUserSearchDialog: () => dispatch(setUserSearchDialogDisplay(true)),
+    showFriendRequestDialog: () => dispatch(setFriendRequestDialogDisplay(true))
 });
 // #endregion
 
@@ -123,8 +125,9 @@ class Chat extends React.Component<IChatProps, IChatState> {
         const { setFriends } = this.props;
         getRequest('/chat/get').then(response => {
             const friends = response.data;
-            if (friends)
+            if (friends) {
                 setFriends(friends);
+            }
         });
     }
 
@@ -134,7 +137,7 @@ class Chat extends React.Component<IChatProps, IChatState> {
     }
 
     render() {
-        const { classes, friends, setUserSearchDialogDisplay } = this.props;
+        const { classes, friends, showUserSearchDialog, showFriendRequestDialog } = this.props;
         const { message, socket } = this.state;
 
         return (
@@ -220,13 +223,19 @@ class Chat extends React.Component<IChatProps, IChatState> {
                         <ListItem className={classes.actionItem}>
                             <UserSearchDialog />
                             <Button fullWidth color='primary' onClick={() => {
-                                setUserSearchDialogDisplay(true);
+                                showUserSearchDialog();
                             }}>Search User</Button>
                         </ListItem>
                         <ListItem className={classes.actionItem}>
                             <Button fullWidth color='primary' onClick={() => {
-                                
+
                             }}>Refresh Key</Button>
+                        </ListItem>
+                        <ListItem className={classes.actionItem}>
+                            <FriendRequestDialog />
+                            <Button fullWidth color='primary' onClick={() => {
+                                showFriendRequestDialog();
+                            }}>Friend Requests</Button>
                         </ListItem>
                     </List>
                 </Drawer>
