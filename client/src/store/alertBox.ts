@@ -11,7 +11,7 @@ const INITIAL_STATE: IAlertBox = {
     text: ''
 }
 
-const actionCreator = actionCreatorFactory('Profile');
+const actionCreator = actionCreatorFactory('alertBox');
 export const setAlertBox = actionCreator<IAlertBox>('setAlertBox');
 export const setAlertBoxDisplay = actionCreator<IAlertBox['display']>('setAlertBoxDisplay');
 export const setAlertBoxText = actionCreator<IAlertBox['text']>('setAlertBoxText');
