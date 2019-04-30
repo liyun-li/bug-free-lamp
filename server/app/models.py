@@ -19,6 +19,15 @@ class User(db.Model):
     password = db.Column(db.String(72))  # bcrypt
 
 
+class Room(db.Model):
+    __tablename__ = 'message_channel'
+
+    # Encrypted Room ID
+    room = db.Column(db.String(512), primary_key=True)
+
+    # Authentication tag for decryption
+
+
 class Friendship(db.Model):
     """
     `user1` is usually the sender
@@ -32,7 +41,8 @@ class Friendship(db.Model):
     user2 = db.Column(db.String(255), db.ForeignKey(
         f'{User.__tablename__}.username'), primary_key=True)
     status = db.Column(db.Enum(RequestStatus))
-    room = db.Column(db.String(255))
+    room = db.Column(db.String(255), db.ForeignKey(
+        f'{Room.__tablename__}.room'))
 
 
 class Message(db.Model):
@@ -50,16 +60,10 @@ class Message(db.Model):
     read_by_receiver = db.Column(db.Boolean)
 
 
-class Room(db.Model):
-    __tablename__ = 'message_channel'
-
-    room_id = db.Column(db.String(255), primary_key=True)
-
-
 class RoomUserMapping(db.Model):
     __tablename__ = 'channel_user_mapping'
 
     room = db.Column(db.String(255), db.ForeignKey(
-        f'{Room.__tablename__}.room_id'), primary_key=True)
+        f'{Room.__tablename__}.room'), primary_key=True)
     user = db.Column(db.String(255), db.ForeignKey(
         f'{User.__tablename__}.username'), primary_key=True)

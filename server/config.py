@@ -5,8 +5,6 @@ from os import getenv, urandom
 
 load_dotenv(verbose=True)
 
-DEV_MODE = getenv('DEVELOPMENT_MODE')
-
 
 class Config:
     # database variables
@@ -25,17 +23,16 @@ class Config:
         u=dbuser, p=dbpass, h=dbhost, pt=dbport, n=dbname
     )
 
-    DEBUG = False
+    DEBUG = not not getenv('DEVELOPMENT_MODE')
 
-    if DEV_MODE:
+    if DEBUG:
         SQLALCHEMY_DATABASE_URI = 'sqlite:///app.db'
-        DEBUG = True
     elif not (dbuser and dbhost and dbname):
         print('Database configuration not provided')
         exit(1)
 
     # session settings
-    if DEV_MODE:
+    if DEBUG:
         SESSION_TYPE = 'sqlalchemy'
     else:
         SESSION_TYPE = 'redis'

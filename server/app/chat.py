@@ -1,10 +1,12 @@
 from flask import Blueprint, request, session
 from sqlalchemy import or_
 from json import dumps
-from app.responses import ErrorMessage, bad_request
+from app.constants import ModelConstants, ErrorMessage, \
+    bad_request, good_request
 from app.models import RequestStatus, Friendship, Message
 from app.utils import check_fields, get_user, get_post_data, \
-    friendship_exists_between, safer_commit, commit_response, get_chat
+    friendship_exists_between, safer_commit, commit_response, \
+    get_chat, get_friendship, sym_encrypt, sym_decrypt
 
 base_route = 'chat'
 chat = Blueprint(base_route, __name__)
@@ -20,15 +22,29 @@ def before_request_user():
 def join_chat():
     data = get_post_data()
     me = session.get('username')
+    friend = data.get('username')
 
-    friend = session.get('friend')
     if not check_fields([friend]):
         return bad_request(ErrorMessage.USER_NOT_FOUND)
 
-    if not friendship_exists_between(me, friend):
+    friendship = get_friendship(me, friend)
+
+    if not friendship:
         return bad_request(ErrorMessage.NOT_FRIEND)
 
-    return commit_response()
+    if not friendship.room:  # condition that likely does not happen
+        room = token_hex(ModelConstants.ROOM_ID_SIZE)
+        while get_room(room):
+            room = token_hex(ModelConstants.ROOM_ID_SIZE)
+
+        tag, ciphertext = sym_encrypt(room)
+        friendship.room = ciphertext
+
+        if not safer_commit():
+            return bad_request(ErrorMessage.INTERNAL_SERVER_ERROR)
+
+    session['room'] = friendship.room
+    return good_request()
 
 
 @chat.route(f'/{base_route}/get', methods=['GET'])
@@ -53,9 +69,9 @@ def get_inbox():
 @chat.route(f'/{base_route}/get', methods=['POST'])
 def get_messages():
     # TODO: Don't get everything at once. Paginate instead.
-    me = session.get('username')
     data = get_post_data()
-    friend = data.get('friend')
+    friend = data.get('username')
+    me = session.get('username')
 
     if not check_fields([friend]):
         return bad_request(ErrorMessage.USER_NOT_FOUND)

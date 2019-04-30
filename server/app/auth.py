@@ -1,7 +1,7 @@
 from flask import Blueprint, request, session
 from bcrypt import hashpw, checkpw, gensalt
 from app.models import db, User
-from app.responses import ErrorMessage
+from app.constants import ErrorMessage
 from app.utils import check_fields, get_user, get_post_data, safer_commit
 
 

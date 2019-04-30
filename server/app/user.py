@@ -2,7 +2,7 @@ from flask import Blueprint, request, session
 from json import dumps
 from os import urandom
 from app.models import db, RequestStatus, Friendship, Room
-from app.responses import ErrorMessage, bad_request, good_request
+from app.constants import ErrorMessage, bad_request, good_request
 from app.utils import check_fields, get_user, safer_commit, get_friendship, \
     commit_response, get_post_data
 
@@ -66,7 +66,7 @@ def add_user():
         )
 
         db.session.add(friendship)
-        return commit_response('Request sent.')
+        return commit_response('Request sent.', 200)
 
     elif friendship.status == RequestStatus.accepted:
         return good_request(ErrorMessage.ALREADY_FRIENDS, 200)
@@ -88,9 +88,6 @@ def accept_friend_request():
     # Establish friendship
     friendship = get_friendship(username, session.get('username'))
 
-    # Make a chat room for the 2
-    room = urandom(Room.room_id.size)
-
     if not friendship:
         return bad_request(ErrorMessage.USER_NOT_FOUND)
 
@@ -98,6 +95,9 @@ def accept_friend_request():
         return bad_request(ErrorMessage.ALREADY_FRIENDS)
 
     friendship.status = RequestStatus.accepted
+
+    # Make a chat room for the 2
+    room = urandom(Room.room_id.property.columns[0].type.length)
 
     return commit_response()
 
@@ -125,10 +125,12 @@ def reject_friend_request():
 
 @user.route(f'/{base_route}/friend_requests', methods=['GET'])
 def get_requests():
-    data = get_post_data()
-    me = data.get('session')
+    me = session.get('username')
 
-    requests = Friendship.query.filter_by(user2=me).all()
+    requests = Friendship.query.filter_by(
+        user2=me,
+        status=RequestStatus.pending
+    ).all()
     senders = [request.user1 for request in requests]
 
     return good_request(dumps(senders), 200)
@@ -138,3 +140,8 @@ def get_requests():
 def cut_ties():
     data = get_post_data()
     username = data.get('username')
+
+    if not check_fields([username]):
+        return bad_request(ErrorMessage.USER_NOT_FOUND)
+
+    return good_request()

@@ -1,3 +1,7 @@
+class ModelConstants:
+    ROOM_ID_SIZE = 128
+
+
 class ErrorMessage:
     EMPTY_FIELDS = 'All fields must not be empty.'
     EMPTY_MESSAGE = 'Message must not be empty.'
@@ -11,6 +15,7 @@ class ErrorMessage:
     USERNAME_ALREADY_EXISTS = 'Username exists.'
     REGISTRATION_ERROR = 'Error during registration.'
     NOT_FRIEND = 'This user is not your friend.'
+    UNKNOWN_ERROR = 'An unknown error occurred.'
 
 
 def bad_request(error_message, status_code=400):

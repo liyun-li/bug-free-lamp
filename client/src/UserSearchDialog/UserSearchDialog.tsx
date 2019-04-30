@@ -1,4 +1,5 @@
 import { ButtonBase, Grid, TextField, Typography } from '@material-ui/core';
+import { Add } from '@material-ui/icons';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Action, Dispatch } from 'redux';
@@ -94,7 +95,7 @@ class UserSearchDialog extends React.Component<IUserSearchDialogProps, IUserSear
                 />
                 {
                     username &&
-                    <Grid container justify='center' alignItems='center'>
+                    <Grid container alignItems='center'>
                         <Grid item xs={10}><Typography>{username}</Typography></Grid>
                         <Grid item xs={2}>
                             <ButtonBase onClick={() => {
@@ -115,7 +116,7 @@ class UserSearchDialog extends React.Component<IUserSearchDialogProps, IUserSear
                                     .finally(() => {
                                         setOverlayDisplay(false);
                                     });
-                            }}>Add</ButtonBase>
+                            }}><Add /></ButtonBase>
                         </Grid>
                     </Grid>
                 }

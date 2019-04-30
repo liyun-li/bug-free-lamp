@@ -1,4 +1,4 @@
-import { AppBar, Badge, Button, createStyles, IconButton, Toolbar, Typography, withStyles, Theme } from '@material-ui/core';
+import { AppBar, Button, createStyles, IconButton, Theme, Toolbar, Typography, withStyles } from '@material-ui/core';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import ExitToApp from '@material-ui/icons/ExitToApp';
 import MailIcon from '@material-ui/icons/Mail';
@@ -86,9 +86,7 @@ class Navigation extends React.Component<INavigationProps> {
                                     <PeopleIcon className={classes.iconOnTheRight} />
                                 </IconButton>
                                 <IconButton onClick={() => history.push(routes.chat)}>
-                                    <Badge badgeContent={4} color='secondary'>
-                                        <MailIcon className={classes.iconOnTheRight} />
-                                    </Badge>
+                                    <MailIcon className={classes.iconOnTheRight} />
                                 </IconButton>
                                 <IconButton onClick={() => history.push(routes.profile)}>
                                     <AccountCircle className={classes.iconOnTheRight} />

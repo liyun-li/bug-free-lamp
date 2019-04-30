@@ -1,17 +1,20 @@
-import { Button, createStyles, Divider, Drawer, Grid, IconButton, List, ListItem, ListItemIcon, ListItemText, Paper, TextField, Toolbar, withStyles } from '@material-ui/core';
-import { People, KeyboardReturn } from '@material-ui/icons';
+import { Badge, Button, createStyles, Divider, Drawer, Grid, IconButton, List, ListItem, ListItemIcon, ListItemText, Paper, TextField, Toolbar, withStyles } from '@material-ui/core';
+import { KeyboardReturn, People } from '@material-ui/icons';
 import * as React from 'react';
-import { keyCodes } from 'src/constants';
-import * as io from 'socket.io-client';
-import { getServerEndpoint } from 'src/utils';
-import { getRequest } from 'src/httpRequest';
-import { IStore } from 'src/store/store';
-import { Action, Dispatch } from 'redux';
-import { setFriends } from 'src/store/user';
 import { connect } from 'react-redux';
-import UserSearchDialog from 'src/UserSearchDialog';
-import { setUserSearchDialogDisplay, setFriendRequestDialogDisplay } from 'src/store/dialog';
+import { Action, Dispatch } from 'redux';
+import * as io from 'socket.io-client';
+import { keyCodes } from 'src/constants';
 import FriendRequestDialog from 'src/FriendRequestDialog';
+import { getRequest, postRequest } from 'src/httpRequest';
+import { setFriendRequestDialogDisplay, setUserSearchDialogDisplay } from 'src/store/dialog';
+import { IStore } from 'src/store/store';
+import { setFriends } from 'src/store/user';
+import UserSearchDialog from 'src/UserSearchDialog';
+import { getServerEndpoint } from 'src/utils';
+import { setMessages } from 'src/store/chat';
+import { setAlertBox } from 'src/store/alertBox';
+import { setOverlayDisplay } from 'src/store/overlay';
 
 // #region interfaces
 interface IChatStyles {
@@ -96,13 +99,24 @@ const styles = createStyles({
 
 // #region react-redux mappers
 const mapStateToProps = (state: IStore) => ({
-    friends: state.user.friends
+    friends: state.user.friends,
+    friendRequests: state.user.friendRequests || []
 });
 
 const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
-    setFriends: (friends: IStore['user']['friends']) => dispatch(setFriends(friends)),
+    setFriends: (friends: IStore['user']['friends']) => dispatch(setFriends(friends || [])),
+    setMessages: (messages: IStore['chat']['messages']) => dispatch(setMessages(messages || [])),
     showUserSearchDialog: () => dispatch(setUserSearchDialogDisplay(true)),
-    showFriendRequestDialog: () => dispatch(setFriendRequestDialogDisplay(true))
+    showFriendRequestDialog: () => dispatch(setFriendRequestDialogDisplay(true)),
+    showResponse: (errorMessage: string) => {
+        dispatch(setAlertBox({
+            display: true,
+            text: errorMessage
+        }));
+    },
+    setOverlayDisplay: (display: boolean) => {
+        dispatch(setOverlayDisplay(display));
+    }
 });
 // #endregion
 
@@ -124,9 +138,16 @@ class Chat extends React.Component<IChatProps, IChatState> {
     componentDidMount() {
         const { setFriends } = this.props;
         getRequest('/chat/get').then(response => {
-            const friends = response.data;
-            if (friends) {
-                setFriends(friends);
+            const data: string[] = response.data;
+            if (data) {
+                const friends = data.map(friend => ({
+                    username: friend,
+                    publicKey: ''
+                }));
+
+                if (friends) {
+                    setFriends(friends);
+                }
             }
         });
     }
@@ -137,7 +158,11 @@ class Chat extends React.Component<IChatProps, IChatState> {
     }
 
     render() {
-        const { classes, friends, showUserSearchDialog, showFriendRequestDialog } = this.props;
+        const {
+            classes, friends, friendRequests, setMessages,
+            showUserSearchDialog, showFriendRequestDialog,
+            setOverlayDisplay, showResponse
+        } = this.props;
         const { message, socket } = this.state;
 
         return (
@@ -158,7 +183,27 @@ class Chat extends React.Component<IChatProps, IChatState> {
                         {
                             friends.map(friend => (
                                 <React.Fragment>
-                                    <ListItem button key={friend.username}>
+                                    <ListItem button key={friend.username}
+                                        onClick={() => {
+                                            setOverlayDisplay(true);
+
+                                            postRequest('/chat/join', {
+                                                username: friend.username
+                                            }).then(_response => {
+                                                postRequest('/chat/get', {
+                                                    username: friend.username
+                                                }).then(response => {
+                                                    setMessages(response.data);
+                                                    setOverlayDisplay(false);
+                                                });
+                                            }).catch(error => {
+                                                if (error && error.response) {
+                                                    showResponse(error.response.data);
+                                                }
+                                                setOverlayDisplay(false);
+                                            });
+                                        }}
+                                    >
                                         <ListItemIcon><People /></ListItemIcon>
                                         <ListItemText>{friend.username}</ListItemText>
                                     </ListItem>
@@ -235,7 +280,16 @@ class Chat extends React.Component<IChatProps, IChatState> {
                             <FriendRequestDialog />
                             <Button fullWidth color='primary' onClick={() => {
                                 showFriendRequestDialog();
-                            }}>Friend Requests</Button>
+                            }}>
+                                {
+                                    friendRequests.length && (
+                                        <Badge badgeContent={friendRequests.length} color='secondary'>
+                                            Friend Requests
+                                    </Badge>
+                                    ) || 'Friend Requests'
+                                }
+
+                            </Button>
                         </ListItem>
                     </List>
                 </Drawer>
