@@ -1,12 +1,14 @@
 from flask import Blueprint, request, session
+from flask_socketio import emit, join_room, leave_room
 from sqlalchemy import or_
 from json import dumps
-from app.constants import ModelConstants, ErrorMessage, \
-    bad_request, good_request
-from app.models import RequestStatus, Friendship, Message
+from app.constants import ModelConstant, ErrorMessage, SessionConstant, \
+    EventConstant
+from app.models import RequestStatus, Friendship, Message, Room
 from app.utils import check_fields, get_user, get_post_data, \
     friendship_exists_between, safer_commit, commit_response, \
-    get_chat, get_friendship, sym_encrypt, sym_decrypt
+    get_chat, get_friendship, sym_encrypt, create_room, get_room, \
+    bad_request, good_request, sym_decrypt
 
 base_route = 'chat'
 chat = Blueprint(base_route, __name__)
@@ -33,17 +35,18 @@ def join_chat():
         return bad_request(ErrorMessage.NOT_FRIEND)
 
     if not friendship.room:  # condition that likely does not happen
-        room = token_hex(ModelConstants.ROOM_ID_SIZE)
-        while get_room(room):
-            room = token_hex(ModelConstants.ROOM_ID_SIZE)
+        return bad_request(ErrorMessage.UNKNOWN_ERROR)
 
-        tag, ciphertext = sym_encrypt(room)
-        friendship.room = ciphertext
+    room = get_room(friendship.room)
+    if not room:
+        return bad_request(ErrorMessage.UNKNOWN_ERROR)
 
-        if not safer_commit():
-            return bad_request(ErrorMessage.INTERNAL_SERVER_ERROR)
+    decrypted = sym_decrypt(bytes.fromhex(room.room_id))
+    if not decrypted:
+        return bad_request('Oh no someone broke into the database.')
 
-    session['room'] = friendship.room
+    session[SessionConstant.ROOM] = decrypted
+    join_room(decrypted)
     return good_request()
 
 

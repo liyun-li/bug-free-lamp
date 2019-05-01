@@ -1,19 +1,21 @@
-from flask import request
+from flask import request, session
 from sqlalchemy import and_, or_
 from bcrypt import hashpw, checkpw, gensalt
 from json import loads
-from app.models import db, User, Friendship, Message, RequestStatus
 from Crypto.Cipher import AES
 from secrets import token_hex
 from os import getenv
 from secrets import token_bytes
+from app.models import db, User, Friendship, Message, RequestStatus, Room
+from app.constants import ModelConstant, SessionConstant
 
 
 def safer_commit():
     try:
         db.session.commit()
         return True
-    except:
+    except Exception as e:
+        print(e)
         db.session.rollback()
         return False
 
@@ -40,7 +42,7 @@ def check_fields(fields):
 
 
 def get_user(username):
-    return User.query.filter_by(username=username).first()
+    return User.query.filter_by(system_username=username.lower()).first()
 
 
 def get_friendship(user1, user2):
@@ -68,11 +70,10 @@ def friendship_exists_between(user1, user2):
 
 def get_chat(me, friend):
     """
-    Get chat by requester's username
-    and sort it by timestamp
+    Get chat by requester's username and sort it by timestamp
 
-    `me`: Requester's username
-    `friend`: Friend's username
+    :param me: Requester's username
+    :param friend: Friend's username
     """
 
     if not friendship_exists_between(me, friend):
@@ -100,34 +101,81 @@ def sym_encrypt(plaintext, key=None):
     AES encryption with GCM mode of operation.
     GCM: https://en.wikipedia.org/wiki/Galois/Counter_Mode
 
-    @param plaintext Plaintext
-    @returns A 16-byte nonce, a 16-byte authentication tag and the ciphertext
+    :param plaintext: Plaintext
+    :returns Byte stream 16-byte nonce, 16-byte tag and ciphertext
     """
 
     key = (key or getenv('DATA_KEY')).encode()
     cipher = AES.new(key, AES.MODE_GCM)
-    ciphertext, tag = cipher.encrypt_and_digest(data)
-    return {
-        'ciphertext': ciphertext,
-        'nonce': cipher.nonce,
-        'tag': tag
-    }
+    ciphertext, tag = cipher.encrypt_and_digest(plaintext)
+
+    if len(cipher.nonce) != ModelConstant.GCM_NONCE_SIZE or \
+            len(tag) != ModelConstant.GCM_TAG_SIZE:
+        raise ValueError('Cipher nonce and tag are not of the correct length')
+
+    return cipher.nonce + tag + ciphertext
 
 
-def sym_decrypt(tag, ciphertext, nonce=None, key=None):
+def sym_decrypt(nonce_tag_ciphertext, key=None):
     """
     AES decryption with GCM mode of operation.
     GCM: https://en.wikipedia.org/wiki/Galois/Counter_Mode
 
-    @param nonce One-time use random value
-    @param tag Authentication tag used to verify data integrity
-    @param ciphertext Ciphertext
-    @returns The plaintext
+    :param nonce_tag_ciphertext: Ciphertext with nonce and tag, hexxed
+    :returns The plaintext byte stream
     """
 
+    nonce_size = ModelConstant.GCM_NONCE_SIZE
+    tag_size = ModelConstant.GCM_TAG_SIZE
+
+    nonce = nonce_tag_ciphertext[:nonce_size].encode()
+    tag = nonce_tag_ciphertext[nonce_size:nonce_size + tag_size].encode()
+    ciphertext = nonce_tag_ciphertext[nonce_size + tag_size:].encode()
+
     key = (key or getenv('DATA_KEY')).encode()
-    if nonce:
-        cipher = AES.new(key, AES.MODE_GCM, nonce)
-    else:
-        cipher = AES.new(key, AES.MODE_GCM)
-    return cipher.decrypt_and_verify(ciphertext, tag)
+    cipher = AES.new(key, AES.MODE_GCM, nonce)
+
+    try:
+        return cipher.decrypt_and_verify(ciphertext, tag)
+    except ValueError:
+        # Wrong key, wrong tag, wrong nonce, etc...
+        return None
+
+
+def create_room():
+    """
+    Returns an encrypted room ID
+    """
+
+    room_id = token_bytes(ModelConstant.ROOM_ID_SIZE)
+    while get_room(room_id):
+        room_id = token_bytes(ModelConstant.ROOM_ID_SIZE)
+
+    return sym_encrypt(room_id).hex()
+
+
+def get_me():
+    """
+    Get my username
+    """
+    return session.get(SessionConstant.USERNAME)
+
+
+def get_update_stream():
+    """
+    Get update stream
+    """
+
+    return session.get(SessionConstant.UPDATE_STREAM)
+
+
+def bad_request(error_message, status_code=400):
+    if status_code < 400:
+        raise Exception('Bad requests or server errors only!')
+    return error_message, status_code
+
+
+def good_request(message='', status_code=204):
+    if status_code >= 300:
+        raise Exception('Successful requests only!')
+    return message, status_code

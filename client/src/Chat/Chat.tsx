@@ -9,10 +9,10 @@ import FriendRequestDialog from 'src/FriendRequestDialog';
 import { getRequest, postRequest } from 'src/httpRequest';
 import { setFriendRequestDialogDisplay, setUserSearchDialogDisplay } from 'src/store/dialog';
 import { IStore } from 'src/store/store';
-import { setFriends } from 'src/store/user';
+import { setFriends, setFriendRequests } from 'src/store/user';
 import UserSearchDialog from 'src/UserSearchDialog';
 import { getServerEndpoint } from 'src/utils';
-import { setMessages } from 'src/store/chat';
+import { setMessages, IMessage } from 'src/store/chat';
 import { setAlertBox } from 'src/store/alertBox';
 import { setOverlayDisplay } from 'src/store/overlay';
 
@@ -37,15 +37,15 @@ interface IChatProps extends
     classes: IChatStyles;
 }
 
-interface IMessageResponse {
+interface IStatusMessage {
+    status: string;
     message: string;
-    timestamp: number;
-    username: string;
 }
 
 interface IChatState {
     message: string;
-    socket: SocketIOClientStatic['Socket'];
+    chatSocket: SocketIOClientStatic['Socket'];
+    updateSocket: SocketIOClientStatic['Socket'];
 }
 // #endregion
 
@@ -99,13 +99,15 @@ const styles = createStyles({
 
 // #region react-redux mappers
 const mapStateToProps = (state: IStore) => ({
-    friends: state.user.friends,
+    friends: state.user.friends || [],
+    messages: state.chat.messages || [],
     friendRequests: state.user.friendRequests || []
 });
 
 const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
     setFriends: (friends: IStore['user']['friends']) => dispatch(setFriends(friends || [])),
     setMessages: (messages: IStore['chat']['messages']) => dispatch(setMessages(messages || [])),
+    setRequests: (requests: IStore['user']['friendRequests']) => dispatch(setFriendRequests(requests)),
     showUserSearchDialog: () => dispatch(setUserSearchDialogDisplay(true)),
     showFriendRequestDialog: () => dispatch(setFriendRequestDialogDisplay(true)),
     showResponse: (errorMessage: string) => {
@@ -124,19 +126,35 @@ class Chat extends React.Component<IChatProps, IChatState> {
     constructor(props: IChatProps) {
         super(props);
 
-        const socket = io.connect(`${getServerEndpoint()}/chat`);
-        socket.on('message', (response: IMessageResponse) => {
-            console.log(response);
+        const { messages, setRequests, setMessages } = props;
+
+        const chatSocket = io.connect(`${getServerEndpoint()}/chat`);
+        const updateSocket = io.connect(`${getServerEndpoint()}/me`);
+
+        chatSocket.on('message', (response: IMessage) => {
+            const newMessages = messages;
+            newMessages.push(response);
+            setMessages(newMessages);
+        });
+
+        updateSocket.on('update_friend_request', (_response: {}) => {
+            console.log('fdsa');
+            getRequest('/user/friend_requests').then(response => {
+                const requests = response.data;
+                setRequests(requests);
+            });
         });
 
         this.state = {
             message: '',
-            socket
+            chatSocket,
+            updateSocket
         };
     }
 
     componentDidMount() {
-        const { setFriends } = this.props;
+        const { setFriends, showResponse } = this.props;
+        const { updateSocket } = this.state;
         getRequest('/chat/get').then(response => {
             const data: string[] = response.data;
             if (data) {
@@ -150,10 +168,16 @@ class Chat extends React.Component<IChatProps, IChatState> {
                 }
             }
         });
+
+        updateSocket.emit('login', {}, (response: IStatusMessage | undefined) => {
+            if (response && response.status === 'error') {
+                showResponse(response.message || 'ERROR');
+            }
+        });
     }
 
     componentWillUnmount() {
-        const { socket } = this.state;
+        const { chatSocket: socket } = this.state;
         socket.emit('leave_chat');
     }
 
@@ -163,7 +187,7 @@ class Chat extends React.Component<IChatProps, IChatState> {
             showUserSearchDialog, showFriendRequestDialog,
             setOverlayDisplay, showResponse
         } = this.props;
-        const { message, socket } = this.state;
+        const { message, chatSocket } = this.state;
 
         return (
             <React.Fragment>
@@ -231,7 +255,7 @@ class Chat extends React.Component<IChatProps, IChatState> {
                                         onKeyDown={(e) => {
                                             if (e.keyCode === keyCodes.enter) {
                                                 // Emit message to server
-                                                socket.emit('message', message);
+                                                chatSocket.emit('message', message);
 
                                                 // Clear message box
                                                 this.setState({

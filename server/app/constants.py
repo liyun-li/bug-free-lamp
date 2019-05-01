@@ -1,5 +1,24 @@
-class ModelConstants:
+class EventConstant:
+    """NS = Namespace"""
+    NS_CHAT = '/chat'
+    NS_USER = '/me'
+    STATUS_SUCCESS = 'success'
+    STATUS_FALIURE = 'error'
+    EVENT_UPDATE_FRIEND_REQUEST = 'update_friend_request'
+    EVENT_GET_FRIENDS = 'get_friends'
+
+
+class SessionConstant:
+    USERNAME = 'username'
+    UPDATE_STREAM = 'update_stream'
+    ROOM = 'room'
+
+
+class ModelConstant:
+    USERNAME_SIZE = 32
     ROOM_ID_SIZE = 128
+    GCM_TAG_SIZE = 16
+    GCM_NONCE_SIZE = 16
 
 
 class ErrorMessage:
@@ -16,15 +35,3 @@ class ErrorMessage:
     REGISTRATION_ERROR = 'Error during registration.'
     NOT_FRIEND = 'This user is not your friend.'
     UNKNOWN_ERROR = 'An unknown error occurred.'
-
-
-def bad_request(error_message, status_code=400):
-    if status_code < 400:
-        raise Exception('Bad requests or server errors only!')
-    return error_message, status_code
-
-
-def good_request(message='', status_code=204):
-    if status_code >= 300:
-        raise Exception('Successful requests only!')
-    return message, status_code

@@ -1,8 +1,14 @@
 import actionCreatorFactory from 'typescript-fsa';
 import { reducerWithInitialState } from 'typescript-fsa-reducers';
 
+export interface IMessage {
+    message: string;
+    timestamp: number;
+    username: string;
+}
+
 export interface IChat {
-    messages: []
+    messages: IMessage[]
 }
 
 const INITIAL_STATE: IChat = {
