@@ -7,7 +7,8 @@ class EventConstant:
     EVENT_STATUS_UPDATE = 'update user status'
     EVENT_UPDATE_FRIEND_REQUEST = 'update friend request'
     EVENT_UPDATE_FRIEND_LIST = 'update friend list'
-    EVENT_GET_FRIENDS = 'get_friends'
+    EVENT_GET_FRIENDS = 'get friends'
+    EVENT_GET_NEW_MESSAGE = 'get new message'
 
 
 class SessionConstant:

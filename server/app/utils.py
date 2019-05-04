@@ -107,9 +107,9 @@ def sym_decrypt(nonce_tag_ciphertext, key=None):
     nonce_size = ModelConstant.GCM_NONCE_SIZE
     tag_size = ModelConstant.GCM_TAG_SIZE
 
-    nonce = nonce_tag_ciphertext[:nonce_size].encode()
-    tag = nonce_tag_ciphertext[nonce_size:nonce_size + tag_size].encode()
-    ciphertext = nonce_tag_ciphertext[nonce_size + tag_size:].encode()
+    nonce = nonce_tag_ciphertext[:nonce_size]
+    tag = nonce_tag_ciphertext[nonce_size:nonce_size + tag_size]
+    ciphertext = nonce_tag_ciphertext[nonce_size + tag_size:]
 
     key = (key or getenv('DATA_KEY')).encode()
     cipher = AES.new(key, AES.MODE_GCM, nonce)

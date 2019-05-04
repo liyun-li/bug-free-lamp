@@ -59,7 +59,8 @@ def join_chat(data):
         emit_error(ErrorMessage.UNKNOWN_ERROR)
         return
 
-    room_id = sym_decrypt(friendship.room)
+    room_id_bytes = bytes.fromhex(friendship.room)
+    room_id = sym_decrypt(room_id_bytes)
     if not room_id:
         emit_error(ErrorMessage.BREACHED)
         return

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, session
-from flask_socketio import emit, join_room, leave_room
+from flask_socketio import emit
 from sqlalchemy import or_
 from json import dumps
 from time import time
@@ -10,6 +10,7 @@ from app.utils import check_fields, get_user, get_post_data, \
     friendship_exists_between, safer_commit, commit_response, \
     get_messages_between, get_friendship, sym_encrypt, create_room, \
     get_room, bad_request, good_request, sym_decrypt
+from app.events import emit_update
 
 base_route = 'chat'
 chat = Blueprint(base_route, __name__)
@@ -74,9 +75,8 @@ def send_message():
     if not check_fields([receiver, message]):
         return bad_request(ErrorMessage.EMPTY_MESSAGE)
 
-    # check that receiver is friend of sender
-    # TODO: this approach slows down performance by a great deal
-    if not friendship_exists_between(sender, receiver):
+    friendship = get_friendship(sender, receiver)
+    if not friendship:
         return bad_request(ErrorMessage.NOT_FRIEND)
 
     try:
@@ -84,11 +84,30 @@ def send_message():
     except ValueError:
         return bad_request(ErrorMessage.INVALID_TIMESTAMP)
 
-    message = Message(
+    message_model = Message(
         sender=sender, receiver=receiver,
         message=message, timestamp=timestamp,
-        read_by_sender=False, read_by_receiver=True
+        read_by_receiver=True
     )
 
-    db.session.add(message)
-    return commit_response()
+    db.session.add(message_model)
+    response = commit_response()
+
+    if response[1] < 300:
+        room_id = sym_decrypt(bytes.fromhex(friendship.room))
+        if not room_id:
+            return bad_request(ErrorMessage.BREACHED)
+
+        emit(
+            EventConstant.EVENT_GET_NEW_MESSAGE,
+            {
+                'timestamp': timestamp,
+                'username': sender,
+                'message': message
+            },
+            room=room_id,
+            namespace=EventConstant.NS_CHAT,
+            callback=lambda x: print(message, sender)
+        )
+
+    return response

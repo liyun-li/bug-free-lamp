@@ -156,13 +156,13 @@ class Chat extends React.Component<IChatProps, IChatState> {
     }
 
     componentDidMount() {
-        const { getFriends, messages, setMessages } = this.props;
+        const { getFriends, setMessages } = this.props;
         const { chatSocket } = this.state;
 
         getFriends();
 
-        chatSocket.on('message', (response: IMessage) => {
-            const newMessages = messages;
+        chatSocket.on('get new message', (response: IMessage) => {
+            const newMessages = [...this.props.messages];
             newMessages.push(response);
             setMessages(newMessages);
         });
@@ -185,6 +185,18 @@ class Chat extends React.Component<IChatProps, IChatState> {
             setCurrentChat, messages
         } = this.props;
         const { message, chatSocket } = this.state;
+
+        const chatMessages = messages.map(_message => {
+            const { username, timestamp, message } = _message;
+            return (
+                <Grid item xs={12}>
+                    <Chip label={`${username} [${timestamp}]: ${message}`}
+                        color="primary" icon={<Face />}
+                        className={classes.message} />
+                    <br />
+                </Grid>
+            )
+        });
 
         return (
             <React.Fragment>
@@ -242,58 +254,51 @@ class Chat extends React.Component<IChatProps, IChatState> {
                 </Drawer>
 
                 {/* Chat Panel */}
-                <Paper className={classes.messagePanel}>
-                    <Grid container direction='row' justify='center' alignItems='flex-end'
-                        className={classes.messagePanelGrid}>
-                        <Grid item xs={12}>
-                            <Grid container direction='row' justify='center' alignItems='center'>
-                                <Grid item xs={12}>
-                                    <div className={classes.chatBox}>
-                                        <Grid container>
-                                            {messages.map(_message => {
-                                                const { username, timestamp, message } = _message;
-                                                return (
-                                                    <Grid item xs={12}>
-                                                        <Chip label={`${username} [${timestamp}]: ${message}`}
-                                                            color="primary" icon={<Face />}
-                                                            className={classes.message} />
-                                                        <br />
-                                                    </Grid>
-                                                )
-                                            })}
-                                        </Grid>
-                                    </div>
-                                </Grid>
+                {
+                    (currentChat || {}).username &&
+                    <Paper className={classes.messagePanel}>
+                        <Grid container direction='row' justify='center' alignItems='flex-end'
+                            className={classes.messagePanelGrid}>
+                            <Grid item xs={12}>
+                                <Grid container direction='row' justify='center' alignItems='center'>
+                                    <Grid item xs={12}>
+                                        <div className={classes.chatBox}>
+                                            <Grid container>
+                                                {chatMessages}
+                                            </Grid>
+                                        </div>
+                                    </Grid>
 
-                                <Grid item xs={12}>
-                                    <TextField className={classes.inputBox}
-                                        placeholder='Hit Enter to send text.'
-                                        variant='outlined' margin='dense'
-                                        onChange={(e) => this.setState({
-                                            ...this.state,
-                                            message: e.target.value
-                                        })} value={message}
-                                        onKeyDown={(e) => {
-                                            if (e.keyCode === keyCodes.enter) {
-                                                // Emit message to server
-                                                postRequest('/chat/send', {
-                                                    receiver: currentChat.username,
-                                                    message
-                                                });
+                                    <Grid item xs={12}>
+                                        <TextField className={classes.inputBox}
+                                            placeholder='Hit Enter to send text.'
+                                            variant='outlined' margin='dense'
+                                            onChange={(e) => this.setState({
+                                                ...this.state,
+                                                message: e.target.value
+                                            })} value={message}
+                                            onKeyDown={(e) => {
+                                                if (e.keyCode === keyCodes.enter) {
+                                                    // Emit message to server
+                                                    postRequest('/chat/send', {
+                                                        receiver: currentChat.username,
+                                                        message
+                                                    });
 
-                                                // Clear message box
-                                                this.setState({
-                                                    ...this.state,
-                                                    message: ''
-                                                });
-                                            }
-                                        }}
-                                    />
+                                                    // Clear message box
+                                                    this.setState({
+                                                        ...this.state,
+                                                        message: ''
+                                                    });
+                                                }
+                                            }}
+                                        />
+                                    </Grid>
                                 </Grid>
                             </Grid>
                         </Grid>
-                    </Grid>
-                </Paper>
+                    </Paper>
+                }
 
                 {/* Right Drawer */}
                 <Drawer variant='permanent' anchor='right' className={classes.listRight}
@@ -331,7 +336,6 @@ class Chat extends React.Component<IChatProps, IChatState> {
                                         </Badge>
                                     ) || 'Friend Requests'
                                 }
-
                             </Button>
                         </ListItem>
                     </List>
