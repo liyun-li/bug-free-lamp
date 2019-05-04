@@ -21,8 +21,19 @@ const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
 });
 
 class PrivateKeyDialog extends React.Component<IKeyDownloadDialogProps> {
+    download = (content: string | null, filename: string) => {
+        const a = document.createElement('a');
+        a.setAttribute('href', 'data:application/octet-stream,'
+            + encodeURIComponent(content || ''));
+        a.setAttribute('download', filename);
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
     render() {
-        const { display, setDisplay, publicKey } = this.props;
+        const { display, setDisplay } = this.props;
 
         return (
             <AppDialog title='Key Download'
@@ -33,17 +44,13 @@ class PrivateKeyDialog extends React.Component<IKeyDownloadDialogProps> {
                     {
                         text: 'Save Public Key',
                         func: () => {
-                            const uriContent = "data:application/octet-stream,"
-                                + encodeURIComponent(publicKey);
-                            window.open(uriContent, 'rsa.public');
+                            this.download(localStorage.getItem('Important'), 'rsa.public');
                         }
                     },
                     {
                         text: 'Save Private Key',
                         func: () => {
-                            const uriContent = "data:application/octet-stream,"
-                                + encodeURIComponent(localStorage.getItem('Not Important') || '');
-                            window.open(uriContent, 'rsa.private');
+                            this.download(localStorage.getItem('Not Important'), 'rsa.private');
                         }
                     },
                     {

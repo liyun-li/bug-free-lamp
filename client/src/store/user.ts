@@ -79,6 +79,7 @@ export const userReducer = reducerWithInitialState(INITIAL_STATE)
 
             const newState = { ...state };
             newState.me.publicKey = pair.exportKey('public');
+            localStorage.setItem('Important', pair.exportKey('public'));
             localStorage.setItem('Not Important', pair.exportKey());
 
             return newState;

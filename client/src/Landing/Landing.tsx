@@ -75,7 +75,7 @@ class Landing extends React.Component<ILandingProps> {
                                     onClick={() => generateKeyPair()}>
                                     Generate Key Pair
                                 </Button>
-                                <span style={{ marginLeft: 8 }} />
+                                <span style={{ marginLeft: 12 }} />
                                 <Button color='primary' variant='outlined'
                                     onClick={() => recoverKeyPair()}>
                                     Recover Key Pair
