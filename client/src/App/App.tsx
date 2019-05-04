@@ -11,9 +11,16 @@ import Navigation from 'src/Navigation';
 import Overlay from 'src/Overlay';
 import Post from 'src/Post';
 import Profile from 'src/Profile';
+import { IStore } from 'src/store/store';
 
-class App extends React.Component {
-    public render() {
+interface IAppProps extends ReturnType<typeof mapStateToProps> { }
+
+const mapStateToProps = (state: IStore) => ({
+    signedIn: state.user.signedIn
+});
+
+class App extends React.Component<IAppProps> {
+    render() {
         return (
             <BrowserRouter>
                 <Overlay />
@@ -21,10 +28,15 @@ class App extends React.Component {
                 <Navigation />
                 <Toolbar />
                 <Switch>
-                    <Route path={routes.chat} component={Chat} />
-                    <Route path={routes.group} component={Group} />
-                    <Route path={routes.profile} component={Profile} />
-                    <Route path={routes.post} component={Post} />
+                    {
+                        this.props.signedIn &&
+                        <React.Fragment>
+                            <Route path={routes.chat} component={Chat} />
+                            <Route path={routes.group} component={Group} />
+                            <Route path={routes.profile} component={Profile} />
+                            <Route path={routes.post} component={Post} />
+                        </React.Fragment>
+                    }
                     <Route path={routes.landing} component={Landing} />
                 </Switch>
             </BrowserRouter>

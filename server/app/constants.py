@@ -4,7 +4,9 @@ class EventConstant:
     NS_USER = '/me'
     STATUS_SUCCESS = 'success'
     STATUS_FALIURE = 'error'
-    EVENT_UPDATE_FRIEND_REQUEST = 'update_friend_request'
+    EVENT_STATUS_UPDATE = 'update user status'
+    EVENT_UPDATE_FRIEND_REQUEST = 'update friend request'
+    EVENT_UPDATE_FRIEND_LIST = 'update friend list'
     EVENT_GET_FRIENDS = 'get_friends'
 
 
@@ -35,3 +37,4 @@ class ErrorMessage:
     REGISTRATION_ERROR = 'Error during registration.'
     NOT_FRIEND = 'This user is not your friend.'
     UNKNOWN_ERROR = 'An unknown error occurred.'
+    BREACHED = 'Someone might have breached the system!'

@@ -68,26 +68,6 @@ def friendship_exists_between(user1, user2):
         else friendship.status == RequestStatus.accepted
 
 
-def get_chat(me, friend):
-    """
-    Get chat by requester's username and sort it by timestamp
-
-    :param me: Requester's username
-    :param friend: Friend's username
-    """
-
-    if not friendship_exists_between(me, friend):
-        return []
-
-    else:
-        return Message.query.filter(
-            or_(
-                and_(Message.sender == me, Message.receiver == friend),
-                and_(Message.sender == friend, Message.receiver == me)
-            )
-        ).order_by(Message.timestamp).all()
-
-
 def get_room(room_id):
     return Room.query.filter_by(room_id=room_id).first()
 
@@ -119,10 +99,9 @@ def sym_encrypt(plaintext, key=None):
 def sym_decrypt(nonce_tag_ciphertext, key=None):
     """
     AES decryption with GCM mode of operation.
-    GCM: https://en.wikipedia.org/wiki/Galois/Counter_Mode
+    Returns a byte stream
 
     :param nonce_tag_ciphertext: Ciphertext with nonce and tag, hexxed
-    :returns The plaintext byte stream
     """
 
     nonce_size = ModelConstant.GCM_NONCE_SIZE
@@ -179,3 +158,28 @@ def good_request(message='', status_code=204):
     if status_code >= 300:
         raise Exception('Successful requests only!')
     return message, status_code
+
+
+def get_messages_between(user1, user2):
+    """
+    Get chat by requester's username and sort it by timestamp
+
+    :param me: Requester's username
+    :param friend: Friend's username
+    """
+
+    if not friendship_exists_between(user1, user2):
+        return []
+
+    return Message.query.filter(
+        or_(
+            and_(
+                Message.sender == user1,
+                Message.receiver == user2
+            ),
+            and_(
+                Message.receiver == user1,
+                Message.sender == user2
+            )
+        )
+    ).order_by(Message.timestamp).all()

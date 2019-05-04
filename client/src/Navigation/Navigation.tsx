@@ -92,7 +92,7 @@ class Navigation extends React.Component<INavigationProps> {
                                     <AccountCircle className={classes.iconOnTheRight} />
                                 </IconButton>
                                 <IconButton onClick={() => {
-                                    getRequest('/user/logout').then(_response => {
+                                    getRequest('/logout').then(_response => {
                                         signOut();
                                     });
                                 }}>

@@ -1,5 +1,5 @@
-import { Badge, Button, createStyles, Divider, Drawer, Grid, IconButton, List, ListItem, ListItemIcon, ListItemText, Paper, TextField, Toolbar, withStyles } from '@material-ui/core';
-import { KeyboardReturn, People } from '@material-ui/icons';
+import { Badge, Button, Chip, createStyles, Divider, Drawer, Grid, IconButton, List, ListItem, ListItemIcon, ListItemText, Paper, TextField, Toolbar, withStyles } from '@material-ui/core';
+import { Face, KeyboardReturn, People } from '@material-ui/icons';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Action, Dispatch } from 'redux';
@@ -7,14 +7,14 @@ import * as io from 'socket.io-client';
 import { keyCodes } from 'src/constants';
 import FriendRequestDialog from 'src/FriendRequestDialog';
 import { getRequest, postRequest } from 'src/httpRequest';
+import { setAlertBox } from 'src/store/alertBox';
+import { IMessage, setMessages } from 'src/store/chat';
 import { setFriendRequestDialogDisplay, setUserSearchDialogDisplay } from 'src/store/dialog';
+import { setOverlayDisplay } from 'src/store/overlay';
 import { IStore } from 'src/store/store';
-import { setFriends, setFriendRequests } from 'src/store/user';
+import { IFriend, setCurrentChat, setFriendRequests, setFriends } from 'src/store/user';
 import UserSearchDialog from 'src/UserSearchDialog';
 import { getServerEndpoint } from 'src/utils';
-import { setMessages, IMessage } from 'src/store/chat';
-import { setAlertBox } from 'src/store/alertBox';
-import { setOverlayDisplay } from 'src/store/overlay';
 
 // #region interfaces
 interface IChatStyles {
@@ -29,6 +29,7 @@ interface IChatStyles {
     messagePanelGrid: string;
     inputBox: string;
     enterButton: string;
+    chatBox: string;
 }
 
 interface IChatProps extends
@@ -37,7 +38,7 @@ interface IChatProps extends
     classes: IChatStyles;
 }
 
-interface IStatusMessage {
+export interface IStatusMessage {
     status: string;
     message: string;
 }
@@ -45,7 +46,6 @@ interface IStatusMessage {
 interface IChatState {
     message: string;
     chatSocket: SocketIOClientStatic['Socket'];
-    updateSocket: SocketIOClientStatic['Socket'];
 }
 // #endregion
 
@@ -93,6 +93,12 @@ const styles = createStyles({
     },
     enterButton: {
         textAlign: 'center'
+    },
+    chatBox: {
+        left: '3.2%',
+        position: 'relative',
+        flex: '1 1 auto',
+        display: 'flex'
     }
 });
 // #endregion
@@ -101,11 +107,11 @@ const styles = createStyles({
 const mapStateToProps = (state: IStore) => ({
     friends: state.user.friends || [],
     messages: state.chat.messages || [],
-    friendRequests: state.user.friendRequests || []
+    friendRequests: state.user.friendRequests || [],
+    currentChat: state.user.currentChat
 });
 
 const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
-    setFriends: (friends: IStore['user']['friends']) => dispatch(setFriends(friends || [])),
     setMessages: (messages: IStore['chat']['messages']) => dispatch(setMessages(messages || [])),
     setRequests: (requests: IStore['user']['friendRequests']) => dispatch(setFriendRequests(requests)),
     showUserSearchDialog: () => dispatch(setUserSearchDialogDisplay(true)),
@@ -118,43 +124,11 @@ const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
     },
     setOverlayDisplay: (display: boolean) => {
         dispatch(setOverlayDisplay(display));
-    }
-});
-// #endregion
-
-class Chat extends React.Component<IChatProps, IChatState> {
-    constructor(props: IChatProps) {
-        super(props);
-
-        const { messages, setRequests, setMessages } = props;
-
-        const chatSocket = io.connect(`${getServerEndpoint()}/chat`);
-        const updateSocket = io.connect(`${getServerEndpoint()}/me`);
-
-        chatSocket.on('message', (response: IMessage) => {
-            const newMessages = messages;
-            newMessages.push(response);
-            setMessages(newMessages);
-        });
-
-        updateSocket.on('update_friend_request', (_response: {}) => {
-            console.log('fdsa');
-            getRequest('/user/friend_requests').then(response => {
-                const requests = response.data;
-                setRequests(requests);
-            });
-        });
-
-        this.state = {
-            message: '',
-            chatSocket,
-            updateSocket
-        };
-    }
-
-    componentDidMount() {
-        const { setFriends, showResponse } = this.props;
-        const { updateSocket } = this.state;
+    },
+    setCurrentChat: (currentChat: IFriend) => {
+        dispatch(setCurrentChat(currentChat));
+    },
+    getFriends: () => {
         getRequest('/chat/get').then(response => {
             const data: string[] = response.data;
             if (data) {
@@ -164,28 +138,48 @@ class Chat extends React.Component<IChatProps, IChatState> {
                 }));
 
                 if (friends) {
-                    setFriends(friends);
+                    dispatch(setFriends(friends));
                 }
             }
         });
+    }
+});
+// #endregion
 
-        updateSocket.emit('login', {}, (response: IStatusMessage | undefined) => {
-            if (response && response.status === 'error') {
-                showResponse(response.message || 'ERROR');
-            }
+class Chat extends React.Component<IChatProps, IChatState> {
+    state = {
+        message: '',
+        chatSocket: io.connect(`${getServerEndpoint()}/chat`)
+    }
+
+    componentDidMount() {
+        const { getFriends, messages, setMessages } = this.props;
+        const { chatSocket } = this.state;
+
+        getFriends();
+
+        chatSocket.on('message', (response: IMessage) => {
+            const newMessages = messages;
+            newMessages.push(response);
+            setMessages(newMessages);
+        });
+
+        chatSocket.on('update friend list', (_response: {}) => {
+            getFriends();
         });
     }
 
     componentWillUnmount() {
-        const { chatSocket: socket } = this.state;
-        socket.emit('leave_chat');
+        const { chatSocket } = this.state;
+        chatSocket.emit('leave_chat', {});
     }
 
     render() {
         const {
             classes, friends, friendRequests, setMessages,
             showUserSearchDialog, showFriendRequestDialog,
-            setOverlayDisplay, showResponse
+            setOverlayDisplay, showResponse, currentChat,
+            setCurrentChat, messages
         } = this.props;
         const { message, chatSocket } = this.state;
 
@@ -211,15 +205,21 @@ class Chat extends React.Component<IChatProps, IChatState> {
                                         onClick={() => {
                                             setOverlayDisplay(true);
 
-                                            postRequest('/chat/join', {
+                                            chatSocket.emit('join_chat', {
                                                 username: friend.username
-                                            }).then(_response => {
-                                                postRequest('/chat/get', {
-                                                    username: friend.username
-                                                }).then(response => {
-                                                    setMessages(response.data);
-                                                    setOverlayDisplay(false);
+                                            });
+
+                                            postRequest('/chat/get', {
+                                                username: friend.username
+                                            }).then(response => {
+                                                const messages = response.data;
+
+                                                setCurrentChat({
+                                                    username: friend.username,
+                                                    publicKey: ''
                                                 });
+                                                setMessages(messages);
+                                                setOverlayDisplay(false);
                                             }).catch(error => {
                                                 if (error && error.response) {
                                                     showResponse(error.response.data);
@@ -242,82 +242,102 @@ class Chat extends React.Component<IChatProps, IChatState> {
                 <Paper className={classes.messagePanel}>
                     <Grid container direction='row' justify='center' alignItems='flex-end'
                         className={classes.messagePanelGrid}>
-                        <Grid item xs={12}>
-                            <Grid container direction='row' justify='center' alignItems='center'>
-                                <Grid item xs={11}>
-                                    <TextField className={classes.inputBox}
-                                        placeholder='Hit Enter to send text.'
-                                        variant='outlined' margin='dense'
-                                        onChange={(e) => this.setState({
-                                            ...this.state,
-                                            message: e.target.value
-                                        })} value={message}
-                                        onKeyDown={(e) => {
-                                            if (e.keyCode === keyCodes.enter) {
-                                                // Emit message to server
-                                                chatSocket.emit('message', message);
+                        <div className={classes.chatBox}>
+                            <Grid item xs={12}>
+                                <Grid container>
+                                        {messages.map(_message => {
+                                            const { username, timestamp, message } = _message;
+                                            return (
+                                                <Grid item xs={12}>
+                                                    <Chip label={`${username} [${timestamp}]: ${message}`}
+                                                        color="primary" icon={<Face />} />
+                                                    <br />
+                                                </Grid>
+                                            )
+                                        })}
+                                </Grid>
+                            </Grid>
+                        </div>
 
-                                                // Clear message box
-                                                this.setState({
-                                                    ...this.state,
-                                                    message: ''
-                                                });
-                                            }
-                                        }}
-                                    />
-                                </Grid>
-                                <Grid item xs={1} className={classes.enterButton}>
-                                    <IconButton>
-                                        <KeyboardReturn />
-                                    </IconButton>
-                                </Grid>
+                    <Grid item xs={12}>
+                        <Grid container direction='row' justify='center' alignItems='center'>
+                            <Grid item xs={11}>
+                                <TextField className={classes.inputBox}
+                                    placeholder='Hit Enter to send text.'
+                                    variant='outlined' margin='dense'
+                                    onChange={(e) => this.setState({
+                                        ...this.state,
+                                        message: e.target.value
+                                    })} value={message}
+                                    onKeyDown={(e) => {
+                                        if (e.keyCode === keyCodes.enter) {
+                                            // Emit message to server
+                                            postRequest('/chat/send', {
+                                                receiver: currentChat.username,
+                                                message
+                                            });
+
+                                            // Clear message box
+                                            this.setState({
+                                                ...this.state,
+                                                message: ''
+                                            });
+                                        }
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={1} className={classes.enterButton}>
+                                <IconButton>
+                                    <KeyboardReturn />
+                                </IconButton>
                             </Grid>
                         </Grid>
                     </Grid>
+                    </Grid>
                 </Paper>
 
-                {/* Right Drawer */}
-                <Drawer variant='permanent' anchor='right' className={classes.listRight}
-                    classes={{
-                        paper: classes.paperRight
-                    }}>
-                    <Toolbar />
-                    <List>
-                        <ListItem className={classes.listHeader}>
-                            <ListItemText className={classes.listHeaderText}>
-                                ACTION MENU
+                {/* Right Drawer */ }
+        <Drawer variant='permanent' anchor='right' className={classes.listRight}
+            classes={{
+                paper: classes.paperRight
+            }}>
+            <Toolbar />
+            <List>
+                <ListItem className={classes.listHeader}>
+                    <ListItemText className={classes.listHeaderText}>
+                        ACTION MENU
                             </ListItemText>
-                        </ListItem>
-                        <Divider />
-                        <ListItem className={classes.actionItem}>
-                            <UserSearchDialog />
-                            <Button fullWidth color='primary' onClick={() => {
-                                showUserSearchDialog();
-                            }}>Search User</Button>
-                        </ListItem>
-                        <ListItem className={classes.actionItem}>
-                            <Button fullWidth color='primary' onClick={() => {
+                </ListItem>
+                <Divider />
+                <ListItem className={classes.actionItem}>
+                    <UserSearchDialog />
+                    <Button fullWidth color='primary' onClick={() => {
+                        showUserSearchDialog();
+                    }}>Search User</Button>
+                </ListItem>
+                <ListItem className={classes.actionItem}>
+                    <Button fullWidth color='primary' onClick={() => {
 
-                            }}>Refresh Key</Button>
-                        </ListItem>
-                        <ListItem className={classes.actionItem}>
-                            <FriendRequestDialog />
-                            <Button fullWidth color='primary' onClick={() => {
-                                showFriendRequestDialog();
-                            }}>
-                                {
-                                    friendRequests.length && (
-                                        <Badge badgeContent={friendRequests.length} color='secondary'>
-                                            Friend Requests
+                    }}>Refresh Key</Button>
+                </ListItem>
+                <ListItem className={classes.actionItem}>
+                    <FriendRequestDialog />
+                    <Button fullWidth color='primary' onClick={() => {
+                        showFriendRequestDialog();
+                    }}>
+                        {
+                            friendRequests.length && (
+                                <Badge badgeContent={friendRequests.length} color='secondary'>
+                                    Friend Requests
                                     </Badge>
-                                    ) || 'Friend Requests'
-                                }
+                            ) || 'Friend Requests'
+                        }
 
-                            </Button>
-                        </ListItem>
-                    </List>
-                </Drawer>
-            </React.Fragment>
+                    </Button>
+                </ListItem>
+            </List>
+        </Drawer>
+            </React.Fragment >
         );
     }
 }

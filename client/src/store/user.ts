@@ -10,18 +10,25 @@ export interface IUser {
     signedIn: boolean;
     friends: IFriend[];
     friendRequests: string[];
+    currentChat: IFriend;
 }
 
 const INITIAL_STATE: IUser = {
     signedIn: false,
     friends: [],
-    friendRequests: []
+    friendRequests: [],
+    currentChat: {
+        username: '',
+        publicKey: ''
+    }
 };
 
 const actionCreator = actionCreatorFactory('User');
 export const setLoginStatus = actionCreator<IUser['signedIn']>('setLoginStatus');
 export const setFriends = actionCreator<IUser['friends']>('setFriends');
 export const setFriendRequests = actionCreator<IUser['friendRequests']>('setFriendRequests');
+export const setCurrentChat = actionCreator<IUser['currentChat']>('setCurrentChat');
+
 
 
 export const userReducer = reducerWithInitialState(INITIAL_STATE)
@@ -36,4 +43,8 @@ export const userReducer = reducerWithInitialState(INITIAL_STATE)
     .case(setFriendRequests, (state, payload): IUser => ({
         ...state,
         friendRequests: payload
+    }))
+    .case(setCurrentChat, (state, payload): IUser => ({
+        ...state,
+        currentChat: payload
     }));

@@ -7,6 +7,7 @@ from app.constants import ModelConstant, SessionConstant, ErrorMessage, \
 from app.utils import check_fields, get_user, safer_commit, get_friendship, \
     commit_response, get_post_data, sym_encrypt, create_room, \
     bad_request, good_request
+from app.events import emit_update
 
 base_route = 'user'
 user = Blueprint(base_route, __name__)
@@ -113,7 +114,14 @@ def accept_friend_request():
     friendship.room = room_id
     friendship.status = RequestStatus.accepted
 
-    return commit_response()
+    response = commit_response()
+    if response[1] < 300:
+        emit_update(
+            EventConstant.EVENT_UPDATE_FRIEND_LIST,
+            room_id,
+            EventConstant.NS_CHAT
+        )
+    return response
 
 
 @user.route(f'/{base_route}/reject', methods=['POST'])
