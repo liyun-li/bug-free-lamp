@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Action, Dispatch } from 'redux';
 import { getRequest } from 'src/httpRequest';
 import { IStore } from 'src/store/store';
-import { setLoginStatus, setFriendRequests } from 'src/store/user';
+import { setLoginStatus, setFriendRequests, IUser, setMe } from 'src/store/user';
 import { getServerEndpoint } from 'src/utils';
 import * as io from 'socket.io-client';
 
@@ -22,15 +22,21 @@ const withAuthentication = (Component: React.ComponentClass) => {
         },
         setFriendRequests: (requests: string[]) => {
             dispatch(setFriendRequests(requests));
+        },
+        setMe: (me: IUser) => {
+            dispatch(setMe(me));
         }
     });
 
     class WithAuthentication extends React.Component<IWithAuthenticationProps> {
         componentDidMount() {
-            const { setLoginStatus } = this.props;
+            const { setLoginStatus, setMe } = this.props;
 
             getRequest('/user/hi')
-                .then(_response => setLoginStatus(true))
+                .then(response => {
+                    setLoginStatus(true);
+                    if (response.data) setMe(response.data);
+                })
                 .catch(_error => setLoginStatus(false));
         }
 

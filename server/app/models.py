@@ -13,10 +13,13 @@ encrypted_room_id_size = (
 
 
 class RequestStatus(Enum):
-    __tablename__ = 'request_status'
-
     accepted = 'Accepted'
     pending = 'Pending'
+
+
+class UserStatus(Enum):
+    online = 'Online'
+    offline = 'Offline'
 
 
 class Room(db.Model):
@@ -49,9 +52,15 @@ class User(db.Model):
         db.ForeignKey(f'{Room.__tablename__}.room_id')
     )
 
+    public_key = db.Column(db.Text)
+    mood = db.Column(db.String(32))  # short text
+    bio = db.Column(db.String(140))  # short bio
+    status = db.Column(db.Enum(UserStatus))
+
     __table_args__ = (
         db.UniqueConstraint(username),
-        db.UniqueConstraint(room)
+        db.UniqueConstraint(room),
+        db.UniqueConstraint(public_key)
     )
 
 

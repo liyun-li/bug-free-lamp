@@ -26,9 +26,9 @@ interface INavigationStyles {
 }
 
 interface INavigationProps extends
-    RouteComponentProps,
     ReturnType<typeof mapStateToProps>,
-    ReturnType<typeof mapDispatchToProps> {
+    ReturnType<typeof mapDispatchToProps>,
+    RouteComponentProps {
     classes: INavigationStyles;
 }
 // #endregion
@@ -82,6 +82,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 class Navigation extends React.Component<INavigationProps> {
     render() {
         const { classes, signedIn, setSignInDialogDisplay, setSignUpDialogDisplay, signOut, history, me } = this.props;
+
+        console.log(me);
 
         return (
             <AppBar className={classes.appBar}>

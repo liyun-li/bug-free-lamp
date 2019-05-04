@@ -6,7 +6,7 @@ from app.constants import ModelConstant, SessionConstant, ErrorMessage, \
     EventConstant
 from app.utils import check_fields, get_user, safer_commit, get_friendship, \
     commit_response, get_post_data, sym_encrypt, create_room, \
-    bad_request, good_request
+    bad_request, good_request, get_me
 from app.events import emit_update
 
 base_route = 'user'
@@ -21,7 +21,13 @@ def before_request_user():
 
 @user.route(f'/{base_route}/hi')
 def hi():
-    return good_request()
+    user = get_user(get_me())
+    return dumps({
+        'username': user.username,
+        'publicKey': user.public_key,
+        'mood': user.mood,
+        'status': user.status
+    })
 
 
 @user.route(f'/{base_route}/search', methods=['POST'])

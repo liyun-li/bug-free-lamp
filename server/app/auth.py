@@ -1,5 +1,6 @@
 from flask import Blueprint, request, session
 from bcrypt import hashpw, checkpw, gensalt
+from json import dumps
 from app.models import db, User
 from app.constants import ErrorMessage, SessionConstant, EventConstant
 from app.utils import check_fields, get_user, get_post_data, safer_commit, \
@@ -25,7 +26,12 @@ def login():
     session[SessionConstant.USERNAME] = user.username
     session[SessionConstant.UPDATE_STREAM] = user.room
 
-    return '', 204
+    return dumps({
+        'username': user.username,
+        'publicKey': user.public_key,
+        'mood': user.mood,
+        'status': user.status
+    })
 
 
 @auth.route('/register', methods=['POST'])
@@ -61,7 +67,9 @@ def register():
     session[SessionConstant.USERNAME] = username
     session[SessionConstant.UPDATE_STREAM] = room
 
-    return '', 204
+    return dumps({
+        'username': user.username
+    })
 
 
 @auth.route(f'/logout')

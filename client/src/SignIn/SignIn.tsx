@@ -7,7 +7,7 @@ import { postRequest } from 'src/httpRequest';
 import { setAlertBox } from 'src/store/alertBox';
 import { setSignInDialogDisplay } from 'src/store/dialog';
 import { setOverlayDisplay } from 'src/store/overlay';
-import { setLoginStatus } from 'src/store/user';
+import { setLoginStatus, IUser, setMe } from 'src/store/user';
 import { IStore } from 'src/store/store';
 
 const mapStateToProps = (state: IStore) => ({
@@ -29,6 +29,9 @@ const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
     },
     setOverlayDisplay: (display: boolean) => {
         dispatch(setOverlayDisplay(display));
+    },
+    setMe: (me: IUser) => {
+        dispatch(setMe(me));
     }
 });
 
@@ -48,7 +51,7 @@ class SignIn extends React.Component<ISignInProps, ISignInState> {
     }
 
     render() {
-        const { display, setDisplay, setLoginStatus, showError, setOverlayDisplay } = this.props;
+        const { display, setDisplay, setLoginStatus, showError, setOverlayDisplay, setMe } = this.props;
         const { username, password } = this.state;
 
         return (
@@ -64,10 +67,11 @@ class SignIn extends React.Component<ISignInProps, ISignInState> {
                             postRequest('/login', {
                                 username,
                                 password
-                            }).then(_response => {
+                            }).then(response => {
                                 setLoginStatus(true);
                                 setDisplay(false);
                                 setOverlayDisplay(false);
+                                if (response.data) setMe(response.data);
                             }).catch(error => {
                                 const response = error.response;
                                 if (response && response.data) {
