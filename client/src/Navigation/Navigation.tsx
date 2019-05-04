@@ -1,8 +1,5 @@
 import { AppBar, Button, createStyles, IconButton, Theme, Toolbar, Typography, withStyles } from '@material-ui/core';
-import AccountCircle from '@material-ui/icons/AccountCircle';
-import ExitToApp from '@material-ui/icons/ExitToApp';
-import MailIcon from '@material-ui/icons/Mail';
-import PeopleIcon from '@material-ui/icons/People';
+import { Search, People, Mail, ExitToApp, AccountCircle } from '@material-ui/icons';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
@@ -83,8 +80,6 @@ class Navigation extends React.Component<INavigationProps> {
     render() {
         const { classes, signedIn, setSignInDialogDisplay, setSignUpDialogDisplay, signOut, history, me } = this.props;
 
-        console.log(me);
-
         return (
             <AppBar className={classes.appBar}>
                 <Toolbar>
@@ -98,14 +93,17 @@ class Navigation extends React.Component<INavigationProps> {
                     {
                         signedIn && (
                             <React.Fragment>
-                                <Typography>
+                                <Typography style={{ color: 'white' }}>
                                     Hello, {me.username}
                                 </Typography>
                                 <IconButton onClick={() => history.push(routes.group)}>
-                                    <PeopleIcon className={classes.iconOnTheRight} />
+                                    <Search className={classes.iconOnTheRight} />
+                                </IconButton>
+                                <IconButton onClick={() => history.push(routes.group)}>
+                                    <People className={classes.iconOnTheRight} />
                                 </IconButton>
                                 <IconButton onClick={() => history.push(routes.chat)}>
-                                    <MailIcon className={classes.iconOnTheRight} />
+                                    <Mail className={classes.iconOnTheRight} />
                                 </IconButton>
                                 <IconButton onClick={() => history.push(routes.profile)}>
                                     <AccountCircle className={classes.iconOnTheRight} />
