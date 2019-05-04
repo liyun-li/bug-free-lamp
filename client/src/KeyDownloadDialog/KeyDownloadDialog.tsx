@@ -21,6 +21,11 @@ const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
 });
 
 class PrivateKeyDialog extends React.Component<IKeyDownloadDialogProps> {
+    /**
+     * Download a content.
+     * @param content Content to be downloaded
+     * @param filename File name 
+     */
     download = (content: string | null, filename: string) => {
         const a = document.createElement('a');
         a.setAttribute('href', 'data:application/octet-stream,'
