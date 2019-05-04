@@ -1,14 +1,14 @@
 import actionCreatorFactory from 'typescript-fsa';
 import { reducerWithInitialState } from 'typescript-fsa-reducers';
 
-export interface IDialog {
+export interface IDialogStore {
     signInDisplay: boolean;
     signUpDisplay: boolean;
     userSearchDisplay: boolean;
     friendRequestDisplay: boolean;
 }
 
-const INITIAL_STATE: IDialog = {
+const INITIAL_STATE: IDialogStore = {
     signInDisplay: false,
     signUpDisplay: false,
     userSearchDisplay: false,
@@ -16,25 +16,25 @@ const INITIAL_STATE: IDialog = {
 };
 
 const actionCreator = actionCreatorFactory('Dialog');
-export const setSignInDialogDisplay = actionCreator<IDialog['signInDisplay']>('setSignInDialogDisplay');
-export const setSignUpDialogDisplay = actionCreator<IDialog['signUpDisplay']>('setSignUpDialogDisplay');
-export const setUserSearchDialogDisplay = actionCreator<IDialog['userSearchDisplay']>('setUserSearchDialogDisplay');
-export const setFriendRequestDialogDisplay = actionCreator<IDialog['friendRequestDisplay']>('setFriendRequestDialogDisplay');
+export const setSignInDialogDisplay = actionCreator<IDialogStore['signInDisplay']>('setSignInDialogDisplay');
+export const setSignUpDialogDisplay = actionCreator<IDialogStore['signUpDisplay']>('setSignUpDialogDisplay');
+export const setUserSearchDialogDisplay = actionCreator<IDialogStore['userSearchDisplay']>('setUserSearchDialogDisplay');
+export const setFriendRequestDialogDisplay = actionCreator<IDialogStore['friendRequestDisplay']>('setFriendRequestDialogDisplay');
 
 export const dialogReducer = reducerWithInitialState(INITIAL_STATE)
-    .case(setSignInDialogDisplay, (state, payload): IDialog => ({
+    .case(setSignInDialogDisplay, (state, payload): IDialogStore => ({
         ...state,
         signInDisplay: payload
     }))
-    .case(setSignUpDialogDisplay, (state, payload): IDialog => ({
+    .case(setSignUpDialogDisplay, (state, payload): IDialogStore => ({
         ...state,
         signUpDisplay: payload
     }))
-    .case(setUserSearchDialogDisplay, (state, payload): IDialog => ({
+    .case(setUserSearchDialogDisplay, (state, payload): IDialogStore => ({
         ...state,
         userSearchDisplay: payload
     }))
-    .case(setFriendRequestDialogDisplay, (state, payload): IDialog => ({
+    .case(setFriendRequestDialogDisplay, (state, payload): IDialogStore => ({
         ...state,
         friendRequestDisplay: payload
     }));

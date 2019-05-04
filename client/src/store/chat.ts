@@ -7,20 +7,20 @@ export interface IMessage {
     username: string;
 }
 
-export interface IChat {
+export interface IChatStore {
     messages: IMessage[]
 }
 
-const INITIAL_STATE: IChat = {
+const INITIAL_STATE: IChatStore = {
     messages: []
 };
 
 const actionCreator = actionCreatorFactory('Chat');
-export const setMessages = actionCreator<IChat['messages']>('setMessages');
+export const setMessages = actionCreator<IChatStore['messages']>('setMessages');
 
 
 export const chatReducer = reducerWithInitialState(INITIAL_STATE)
-    .case(setMessages, (state, payload): IChat => ({
+    .case(setMessages, (state, payload): IChatStore => ({
         ...state,
         messages: payload
     }));

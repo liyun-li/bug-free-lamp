@@ -2,14 +2,14 @@ import * as React from 'react';
 import { createStyles, withStyles, CircularProgress, Typography } from '@material-ui/core';
 import { IStore } from 'src/store';
 import { connect } from 'react-redux';
-import { IOverlay } from 'src/store/overlay';
+import { IOverlayStore } from 'src/store/overlay';
 
 interface ISignInStyles {
     overlay: string;
     overlayChildren: string;
 }
 
-interface ISignInProps extends IOverlay {
+interface ISignInProps extends IOverlayStore {
     classes: ISignInStyles;
 }
 

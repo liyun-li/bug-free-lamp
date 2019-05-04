@@ -1,19 +1,19 @@
 import actionCreatorFactory from 'typescript-fsa';
 import { reducerWithInitialState } from 'typescript-fsa-reducers';
 
-export interface IOverlay {
+export interface IOverlayStore {
     display: boolean;
 }
 
-const INITIAL_STATE: IOverlay = {
+const INITIAL_STATE: IOverlayStore = {
     display: false
 }
 
 const actionCreator = actionCreatorFactory('Overlay');
-export const setOverlayDisplay = actionCreator<IOverlay['display']>('setOverlayDisplay');
+export const setOverlayDisplay = actionCreator<IOverlayStore['display']>('setOverlayDisplay');
 
 export const overlayReducer = reducerWithInitialState(INITIAL_STATE)
-    .case(setOverlayDisplay, (state: IOverlay, payload) => ({
+    .case(setOverlayDisplay, (state: IOverlayStore, payload) => ({
         ...state,
         display: payload
     }));

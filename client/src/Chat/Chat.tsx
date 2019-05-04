@@ -12,7 +12,7 @@ import { IMessage, setMessages } from 'src/store/chat';
 import { setFriendRequestDialogDisplay, setUserSearchDialogDisplay } from 'src/store/dialog';
 import { setOverlayDisplay } from 'src/store/overlay';
 import { IStore } from 'src/store/store';
-import { IFriend, setCurrentChat, setFriendRequests, setFriends } from 'src/store/user';
+import { IUser, setCurrentChat, setFriendRequests, setFriends } from 'src/store/user';
 import UserSearchDialog from 'src/UserSearchDialog';
 import { getServerEndpoint } from 'src/utils';
 
@@ -128,16 +128,18 @@ const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
     setOverlayDisplay: (display: boolean) => {
         dispatch(setOverlayDisplay(display));
     },
-    setCurrentChat: (currentChat: IFriend) => {
+    setCurrentChat: (currentChat: IUser) => {
         dispatch(setCurrentChat(currentChat));
     },
     getFriends: () => {
         getRequest('/chat/get').then(response => {
-            const data: string[] = response.data;
+            const data: IUser[] = response.data;
             if (data) {
                 const friends = data.map(friend => ({
-                    username: friend,
-                    publicKey: ''
+                    username: friend.username,
+                    publicKey: friend.publicKey || '',
+                    mood: friend.mood || '',
+                    status: friend.status || ''
                 }));
 
                 if (friends) {
@@ -192,8 +194,8 @@ class Chat extends React.Component<IChatProps, IChatState> {
                 <Grid item xs={12}>
                     <Chip label={`${username} [${timestamp}]: ${message}`}
                         color="primary" icon={<Face />}
-                        className={classes.message} />
-                    <br />
+                        className={classes.message}
+                    />
                 </Grid>
             )
         });
@@ -231,7 +233,9 @@ class Chat extends React.Component<IChatProps, IChatState> {
 
                                                 setCurrentChat({
                                                     username: friend.username,
-                                                    publicKey: ''
+                                                    publicKey: friend.publicKey || '',
+                                                    mood: friend.mood || '',
+                                                    status: friend.status || ''
                                                 });
                                                 setMessages(messages);
                                                 setOverlayDisplay(false);
@@ -263,9 +267,7 @@ class Chat extends React.Component<IChatProps, IChatState> {
                                 <Grid container direction='row' justify='center' alignItems='center'>
                                     <Grid item xs={12}>
                                         <div className={classes.chatBox}>
-                                            <Grid container>
-                                                {chatMessages}
-                                            </Grid>
+                                            {chatMessages}
                                         </div>
                                     </Grid>
 

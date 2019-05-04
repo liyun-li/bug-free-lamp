@@ -15,9 +15,11 @@ import { IStore } from 'src/store';
 import { setSignInDialogDisplay, setSignUpDialogDisplay } from 'src/store/dialog';
 import { setLoginStatus } from 'src/store/user';
 
+// #region interfaces
 interface INavigationStyles {
     appBar: string;
     menuIcon: string;
+    homePageButton: string;
     iconOnTheRight: string;
     flexGlow: string;
     spacing: string;
@@ -29,10 +31,17 @@ interface INavigationProps extends
     ReturnType<typeof mapDispatchToProps> {
     classes: INavigationStyles;
 }
+// #endregion
 
+// #region styles
 const styles = (theme: Theme) => createStyles({
     appBar: {
         zIndex: theme.zIndex.drawer + 1
+    },
+    homePageButton: {
+        '&:hover': {
+            backgroundColor: theme.palette.primary.main
+        }
     },
     menuIcon: {
         color: 'white'
@@ -49,9 +58,12 @@ const styles = (theme: Theme) => createStyles({
         paddingLeft: '8px'
     }
 });
+// #endregion
 
+// #region react-redux
 const mapStateToProps = (state: IStore) => ({
-    signedIn: state.user.signedIn
+    signedIn: state.user.signedIn,
+    me: state.user.me
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -65,15 +77,17 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         dispatch(setLoginStatus(false));
     }
 });
+// #endregion
 
 class Navigation extends React.Component<INavigationProps> {
     render() {
-        const { classes, signedIn, setSignInDialogDisplay, setSignUpDialogDisplay, signOut, history } = this.props;
+        const { classes, signedIn, setSignInDialogDisplay, setSignUpDialogDisplay, signOut, history, me } = this.props;
 
         return (
             <AppBar className={classes.appBar}>
                 <Toolbar>
-                    <Button onClick={() => history.push('/', null)} color='inherit'>
+                    <Button onClick={() => history.push('/', null)} disableRipple disableTouchRipple
+                        className={classes.homePageButton} color='inherit'>
                         <Typography variant='title' color='inherit'>
                             Bug Free Lamp
                         </Typography>
@@ -82,6 +96,9 @@ class Navigation extends React.Component<INavigationProps> {
                     {
                         signedIn && (
                             <React.Fragment>
+                                <Typography>
+                                    Hello, {me.username}
+                                </Typography>
                                 <IconButton onClick={() => history.push(routes.group)}>
                                     <PeopleIcon className={classes.iconOnTheRight} />
                                 </IconButton>

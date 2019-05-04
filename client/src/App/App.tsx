@@ -28,15 +28,10 @@ class App extends React.Component<IAppProps> {
                 <Navigation />
                 <Toolbar />
                 <Switch>
-                    {
-                        this.props.signedIn &&
-                        <React.Fragment>
-                            <Route path={routes.chat} component={Chat} />
-                            <Route path={routes.group} component={Group} />
-                            <Route path={routes.profile} component={Profile} />
-                            <Route path={routes.post} component={Post} />
-                        </React.Fragment>
-                    }
+                    <Route path={routes.chat} component={Chat} />
+                    <Route path={routes.group} component={Group} />
+                    <Route path={routes.profile} component={Profile} />
+                    <Route path={routes.post} component={Post} />
                     <Route path={routes.landing} component={Landing} />
                 </Switch>
             </BrowserRouter>

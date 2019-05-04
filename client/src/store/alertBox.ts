@@ -1,30 +1,30 @@
 import actionCreatorFactory from 'typescript-fsa';
 import { reducerWithInitialState } from 'typescript-fsa-reducers';
 
-export interface IAlertBox {
+export interface IAlertBoxStore {
     display: boolean;
     text: string;
 }
 
-const INITIAL_STATE: IAlertBox = {
+const INITIAL_STATE: IAlertBoxStore = {
     display: false,
     text: ''
 }
 
 const actionCreator = actionCreatorFactory('alertBox');
-export const setAlertBox = actionCreator<IAlertBox>('setAlertBox');
-export const setAlertBoxDisplay = actionCreator<IAlertBox['display']>('setAlertBoxDisplay');
-export const setAlertBoxText = actionCreator<IAlertBox['text']>('setAlertBoxText');
+export const setAlertBox = actionCreator<IAlertBoxStore>('setAlertBox');
+export const setAlertBoxDisplay = actionCreator<IAlertBoxStore['display']>('setAlertBoxDisplay');
+export const setAlertBoxText = actionCreator<IAlertBoxStore['text']>('setAlertBoxText');
 
 export const alertBoxReducer = reducerWithInitialState(INITIAL_STATE)
-    .case(setAlertBox, (_state, payload): IAlertBox => ({
+    .case(setAlertBox, (_state, payload): IAlertBoxStore => ({
         ...payload
     }))
-    .case(setAlertBoxDisplay, (state, payload): IAlertBox => ({
+    .case(setAlertBoxDisplay, (state, payload): IAlertBoxStore => ({
         ...state,
         display: payload
     }))
-    .case(setAlertBoxText, (state, payload): IAlertBox => ({
+    .case(setAlertBoxText, (state, payload): IAlertBoxStore => ({
         ...state,
         text: payload
     }));

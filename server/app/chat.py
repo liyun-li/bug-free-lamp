@@ -32,11 +32,17 @@ def get_inbox():
     ).all()
 
     for friendship in friendships:
-        if friendship.status == RequestStatus.accepted:
-            if friendship.user1 == me:
-                friends.append(friendship.user2)
-            elif friendship.user2 == me:
-                friends.append(friendship.user1)
+        if friendship.status != RequestStatus.accepted:
+            continue
+
+        user = get_user(user1 if friendship.user2 == me else user2)
+        if not user:
+            continue
+
+        friends.append({
+            'username': user.username,
+            'publicKey': user.public_key
+        })
 
     return dumps(friends)
 
