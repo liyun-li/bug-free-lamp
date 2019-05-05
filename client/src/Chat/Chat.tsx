@@ -1,20 +1,16 @@
-import { Badge, Button, Chip, createStyles, Divider, Drawer, Grid, List, ListItem, ListItemIcon, ListItemText, Paper, TextField, Toolbar, withStyles } from '@material-ui/core';
+import { Chip, createStyles, Divider, Drawer, Grid, List, ListItem, ListItemIcon, ListItemText, Paper, TextField, Toolbar, withStyles } from '@material-ui/core';
 import { Face, People } from '@material-ui/icons';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Action, Dispatch } from 'redux';
 import * as io from 'socket.io-client';
 import { keyCodes } from 'src/constants';
-import FriendRequestDialog from 'src/FriendRequestDialog';
-import { getRequest, postRequest } from 'src/httpRequest';
+import { getRequest, postRequest, SERVER_URL } from 'src/httpRequest';
 import { setAlertBox } from 'src/store/alertBox';
 import { IMessage, setMessages } from 'src/store/chat';
-import { setFriendRequestDialogDisplay, setUserSearchDialogDisplay } from 'src/store/dialog';
 import { setOverlayDisplay } from 'src/store/overlay';
 import { IStore } from 'src/store/store';
 import { IUser, setCurrentChat, setFriendRequests, setFriends } from 'src/store/user';
-import UserSearchDialog from 'src/UserSearchDialog';
-import { getServerEndpoint } from 'src/utils';
 
 // #region interfaces
 interface IChatStyles {
@@ -81,8 +77,7 @@ const styles = createStyles({
     messagePanel: {
         flex: '1 1 auto',
         display: 'flex',
-        marginLeft: listWidth,
-        marginRight: listWidth
+        marginLeft: listWidth
     },
     messagePanelGrid: {
         flexGrow: 1
@@ -110,15 +105,12 @@ const styles = createStyles({
 const mapStateToProps = (state: IStore) => ({
     friends: state.user.friends || [],
     messages: state.chat.messages || [],
-    friendRequests: state.user.friendRequests || [],
     currentChat: state.user.currentChat
 });
 
 const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
     setMessages: (messages: IStore['chat']['messages']) => dispatch(setMessages(messages || [])),
     setRequests: (requests: IStore['user']['friendRequests']) => dispatch(setFriendRequests(requests)),
-    showUserSearchDialog: () => dispatch(setUserSearchDialogDisplay(true)),
-    showFriendRequestDialog: () => dispatch(setFriendRequestDialogDisplay(true)),
     showResponse: (errorMessage: string) => {
         dispatch(setAlertBox({
             display: true,
@@ -154,7 +146,7 @@ const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
 class Chat extends React.Component<IChatProps, IChatState> {
     state = {
         message: '',
-        chatSocket: io.connect(`${getServerEndpoint()}/chat`)
+        chatSocket: io.connect(`${SERVER_URL}/chat`)
     }
 
     componentDidMount() {
@@ -181,10 +173,8 @@ class Chat extends React.Component<IChatProps, IChatState> {
 
     render() {
         const {
-            classes, friends, friendRequests, setMessages,
-            showUserSearchDialog, showFriendRequestDialog,
-            setOverlayDisplay, showResponse, currentChat,
-            setCurrentChat, messages
+            classes, friends, setMessages, setOverlayDisplay, showResponse, 
+            currentChat, setCurrentChat, messages
         } = this.props;
         const { message, chatSocket } = this.state;
 
@@ -218,7 +208,8 @@ class Chat extends React.Component<IChatProps, IChatState> {
                         {
                             friends.map(friend => (
                                 <React.Fragment>
-                                    <ListItem button key={friend.username}
+                                    <ListItem button key={friend.username} 
+                                        selected={currentChat.username === friend.username}
                                         onClick={() => {
                                             setOverlayDisplay(true);
 
@@ -301,47 +292,6 @@ class Chat extends React.Component<IChatProps, IChatState> {
                         </Grid>
                     </Paper>
                 }
-
-                {/* Right Drawer */}
-                <Drawer variant='permanent' anchor='right' className={classes.listRight}
-                    classes={{
-                        paper: classes.paperRight
-                    }}>
-                    <Toolbar />
-                    <List>
-                        <ListItem className={classes.listHeader}>
-                            <ListItemText className={classes.listHeaderText}>
-                                ACTION MENU
-                                    </ListItemText>
-                        </ListItem>
-                        <Divider />
-                        <ListItem className={classes.actionItem}>
-                            <UserSearchDialog />
-                            <Button fullWidth color='primary' onClick={() => {
-                                showUserSearchDialog();
-                            }}>Search User</Button>
-                        </ListItem>
-                        <ListItem className={classes.actionItem}>
-                            <Button fullWidth color='primary' onClick={() => {
-
-                            }}>Refresh Key</Button>
-                        </ListItem>
-                        <ListItem className={classes.actionItem}>
-                            <FriendRequestDialog />
-                            <Button fullWidth color='primary' onClick={() => {
-                                showFriendRequestDialog();
-                            }}>
-                                {
-                                    friendRequests.length && (
-                                        <Badge badgeContent={friendRequests.length} color='secondary'>
-                                            Friend Requests
-                                        </Badge>
-                                    ) || 'Friend Requests'
-                                }
-                            </Button>
-                        </ListItem>
-                    </List>
-                </Drawer>
             </React.Fragment >
         );
     }

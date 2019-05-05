@@ -1,16 +1,19 @@
-import { AppBar, Button, createStyles, IconButton, Theme, Toolbar, Typography, withStyles } from '@material-ui/core';
-import { Search, People, Mail, ExitToApp, AccountCircle } from '@material-ui/icons';
+import { AppBar, Button, createStyles, IconButton, Theme, Toolbar, Typography, withStyles, Badge } from '@material-ui/core';
+import { ExitToApp, Mail, People, Search } from '@material-ui/icons';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dispatch } from 'redux';
 import { routes } from 'src/constants';
+import FriendRequestDialog from 'src/FriendRequestDialog';
 import { getRequest } from 'src/httpRequest';
 import SignIn from 'src/SignIn';
 import SignUp from 'src/SignUp';
 import { IStore } from 'src/store';
-import { setSignInDialogDisplay, setSignUpDialogDisplay } from 'src/store/dialog';
-import { setLoginStatus } from 'src/store/user';
+import { setFriendRequestDialogDisplay, setSignInDialogDisplay, setSignUpDialogDisplay, setUserSearchDialogDisplay } from 'src/store/dialog';
+import { setFriendRequests, setLoginStatus } from 'src/store/user';
+import UserSearchDialog from 'src/UserSearchDialog';
+
 
 // #region interfaces
 interface INavigationStyles {
@@ -60,7 +63,8 @@ const styles = (theme: Theme) => createStyles({
 // #region react-redux
 const mapStateToProps = (state: IStore) => ({
     signedIn: state.user.signedIn,
-    me: state.user.me
+    me: state.user.me,
+    friendRequests: state.user.friendRequests
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -72,42 +76,54 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     },
     signOut: () => {
         dispatch(setLoginStatus(false));
-    }
+    },
+    setRequests: (requests: IStore['user']['friendRequests']) => dispatch(setFriendRequests(requests)),
+    showUserSearchDialog: () => dispatch(setUserSearchDialogDisplay(true)),
+    showFriendRequestDialog: () => dispatch(setFriendRequestDialogDisplay(true))
 });
 // #endregion
 
 class Navigation extends React.Component<INavigationProps> {
     render() {
-        const { classes, signedIn, setSignInDialogDisplay, setSignUpDialogDisplay, signOut, history, me } = this.props;
+        const {
+            classes, signedIn, setSignInDialogDisplay, setSignUpDialogDisplay, friendRequests,
+            signOut, history, me, showFriendRequestDialog, showUserSearchDialog
+        } = this.props;
 
         return (
             <AppBar className={classes.appBar}>
                 <Toolbar>
                     <Button onClick={() => history.push('/', null)} disableRipple disableTouchRipple
                         className={classes.homePageButton} color='inherit'>
-                        <Typography variant='title' color='inherit'>
-                            Bug Free Lamp
+                        <Typography variant='title'>
+                            Bug-Free Lamp
                         </Typography>
                     </Button>
                     <div className={classes.flexGlow} />
                     {
                         signedIn && (
                             <React.Fragment>
+                                <UserSearchDialog />
+                                <FriendRequestDialog />
                                 <Typography style={{ color: 'white' }}>
                                     Hello, {me.username}
                                 </Typography>
-                                <IconButton onClick={() => history.push(routes.group)}>
+                                <IconButton onClick={() => showUserSearchDialog()}>
                                     <Search className={classes.iconOnTheRight} />
-                                </IconButton>
-                                <IconButton onClick={() => history.push(routes.group)}>
-                                    <People className={classes.iconOnTheRight} />
                                 </IconButton>
                                 <IconButton onClick={() => history.push(routes.chat)}>
                                     <Mail className={classes.iconOnTheRight} />
                                 </IconButton>
-                                <IconButton onClick={() => history.push(routes.profile)}>
-                                    <AccountCircle className={classes.iconOnTheRight} />
+                                <IconButton onClick={() => showFriendRequestDialog()}>
+                                    {
+                                        friendRequests.length && (
+                                            <Badge badgeContent={friendRequests.length} color='secondary'>
+                                                <People className={classes.iconOnTheRight} />
+                                            </Badge>
+                                        ) || <People className={classes.iconOnTheRight} />
+                                    }
                                 </IconButton>
+                                <span> | </span>
                                 <IconButton onClick={() => {
                                     getRequest('/logout').then(_response => {
                                         signOut();

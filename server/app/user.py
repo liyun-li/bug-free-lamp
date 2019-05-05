@@ -6,7 +6,7 @@ from app.constants import ModelConstant, SessionConstant, ErrorMessage, \
     EventConstant
 from app.utils import check_fields, get_user, safer_commit, get_friendship, \
     commit_response, get_post_data, sym_encrypt, create_room, \
-    bad_request, good_request, get_me
+    bad_request, good_request, get_me, asym_decrypt
 from app.events import emit_update
 
 base_route = 'user'
@@ -30,6 +30,31 @@ def hi():
     })
 
 
+@user.route(f'/{base_route}/set_public_key', methods=['POST'])
+def set_public_key():
+    data = get_post_data()
+    user = get_user(get_me())
+
+    public_key = data.get('publicKey')
+    ciphertext = data.get('message')
+
+    if not check_fields([public_key, ciphertext]):
+        return bad_request('Empty file cannot be uploaded')
+
+    if not user:
+        return bad_request(ErrorMessage.UNKNOWN_ERROR)
+
+    if user.public_key and user.public_key == public_key:
+        return good_request('Success!')
+
+    plaintext = 'I have a cat and she is very chubby'
+    if asym_decrypt(public_key, ciphertext).decode() != plaintext:
+        return bad_request('Invalid key')
+
+    user.public_key = public_key
+    return commit_response()
+
+
 @user.route(f'/{base_route}/search', methods=['POST'])
 def search_user():
     data = get_post_data()
@@ -42,7 +67,7 @@ def search_user():
     if not user:
         return bad_request(ErrorMessage.USER_NOT_FOUND)
 
-    return good_request(user.username, 200)
+    return good_request(user.username)
 
 
 @user.route(f'/{base_route}/add', methods=['POST'])
@@ -82,10 +107,10 @@ def add_user():
         return response
 
     elif friendship.status == RequestStatus.accepted:
-        return good_request(ErrorMessage.ALREADY_FRIENDS, 200)
+        return good_request(ErrorMessage.ALREADY_FRIENDS)
 
     elif friendship.status == RequestStatus.pending:
-        return good_request(ErrorMessage.REQUEST_ALREADY_SENT, 200)
+        return good_request(ErrorMessage.REQUEST_ALREADY_SENT)
 
     return bad_request(ErrorMessage.INTERNAL_SERVER_ERROR, 500)
 
@@ -161,7 +186,7 @@ def get_requests():
     ).all()
     senders = [request.user1 for request in requests]
 
-    return good_request(dumps(senders), 200)
+    return good_request(dumps(senders))
 
 
 @user.route(f'/{base_route}/cut_ties', methods=['POST'])

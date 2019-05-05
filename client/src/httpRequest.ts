@@ -3,7 +3,7 @@ import axios from 'axios';
 axios.defaults.withCredentials = true;
 
 // bad code
-const SERVER_URL = 'http://127.0.0.1:3001';
+export const SERVER_URL = 'https://bug.free.lamp:3001';
 
 export const postRequest = (url: string, data?: object) =>
     axios({

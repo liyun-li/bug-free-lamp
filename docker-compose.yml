@@ -1,0 +1,12 @@
+version: '3'
+services:
+    client:
+        container_name: bfl-client
+        build: ./client
+        ports:
+            - 3000:3000
+    server:
+        container_name: bfl-server
+        build: ./server
+        volumes:
+            - ./server/opt/client

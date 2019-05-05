@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Action, Dispatch } from 'redux';
-import { getRequest } from 'src/httpRequest';
+import { getRequest, SERVER_URL } from 'src/httpRequest';
 import { IStore } from 'src/store/store';
 import { setLoginStatus, setFriendRequests, IUser, setMe } from 'src/store/user';
-import { getServerEndpoint } from 'src/utils';
 import * as io from 'socket.io-client';
 
 const withAuthentication = (Component: React.ComponentClass) => {
@@ -45,7 +44,7 @@ const withAuthentication = (Component: React.ComponentClass) => {
 
             if (!prevProps.signedIn && signedIn) {
                 const { setFriendRequests } = this.props;
-                const mySocket = io.connect(`${getServerEndpoint()}/me`);
+                const mySocket = io.connect(`${SERVER_URL}/me`);
 
                 mySocket.on('connect', () => {
                     mySocket.emit('login', {});
