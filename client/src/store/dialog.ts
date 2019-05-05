@@ -9,6 +9,8 @@ export interface IDialogStore {
     userSearchDisplay: boolean;
     friendRequestDisplay: boolean;
     keyDownloadDisplay: boolean;
+    keyImportDisplay: boolean;
+
 }
 
 const INITIAL_STATE: IDialogStore = {
@@ -16,7 +18,8 @@ const INITIAL_STATE: IDialogStore = {
     signUpDisplay: false,
     userSearchDisplay: false,
     friendRequestDisplay: false,
-    keyDownloadDisplay: false
+    keyDownloadDisplay: false,
+    keyImportDisplay: false
 };
 
 const actionCreator = actionCreatorFactory('Dialog');
@@ -25,6 +28,7 @@ export const setSignUpDialogDisplay = actionCreator<IDialogStore['signUpDisplay'
 export const setUserSearchDialogDisplay = actionCreator<IDialogStore['userSearchDisplay']>('setUserSearchDialogDisplay');
 export const setFriendRequestDialogDisplay = actionCreator<IDialogStore['friendRequestDisplay']>('setFriendRequestDialogDisplay');
 export const setKeyDownloadDisplay = actionCreator<IDialogStore['keyDownloadDisplay']>('setKeyDownloadDisplay');
+export const setKeyImportDisplay = actionCreator<IDialogStore['keyDownloadDisplay']>('setKeyImportDisplay');
 
 export const dialogReducer = reducerWithInitialState(INITIAL_STATE)
     .case(setSignInDialogDisplay, (state, payload): IDialogStore => ({
@@ -46,4 +50,8 @@ export const dialogReducer = reducerWithInitialState(INITIAL_STATE)
     .case(setKeyDownloadDisplay, (state, payload): IDialogStore => ({
         ...state,
         keyDownloadDisplay: payload
+    }))
+    .case(setKeyImportDisplay, (state, payload): IDialogStore => ({
+        ...state,
+        keyImportDisplay: payload
     }));

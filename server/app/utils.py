@@ -2,7 +2,8 @@ from flask import request, session
 from sqlalchemy import and_, or_
 from bcrypt import hashpw, checkpw, gensalt
 from json import loads
-from Crypto.Cipher import AES
+from Crypto.Cipher import AES, PKCS1_OAEP
+from Crypto.PublicKey import RSA
 from secrets import token_hex
 from os import getenv
 from secrets import token_bytes
@@ -154,9 +155,8 @@ def bad_request(error_message, status_code=400):
     return error_message, status_code
 
 
-def good_request(message='', status_code=204):
-    if status_code >= 300:
-        raise Exception('Successful requests only!')
+def good_request(message=''):
+    status_code = 200 if message else 204
     return message, status_code
 
 
@@ -183,3 +183,19 @@ def get_messages_between(user1, user2):
             )
         )
     ).order_by(Message.timestamp).all()
+
+
+def str2bytes(s):
+    return s if type(s) == bytes else s.encode()
+
+
+def asym_decrypt(key, message):
+    rsa_key = RSA.import_key(str2bytes(key))
+    cipher = PKCS1_OAEP.new(rsa_key)
+    return cipher.decrypt(str2bytes(message))
+
+
+def asym_encrypt(key, message):
+    rsa_key = RSA.import_key(str2bytes(key))
+    cipher = PKCS1_OAEP.new(rsa_key)
+    return cipher.encrypt(str2bytes(message))

@@ -2,22 +2,20 @@ import { Button, createStyles, Grid, Theme, Typography, withStyles } from '@mate
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Action, Dispatch } from 'redux';
-import { globalDispatchProps, IStore } from 'src/store';
-import { setOverlayDisplay } from 'src/store/overlay';
-import { generateKeyPair } from 'src/store/user';
-import { setKeyDownloadDisplay } from 'src/store/dialog';
 import KeyDownloadDialog from 'src/KeyDownloadDialog';
+import KeyImportDialog from 'src/KeyImportDialog';
+import { globalDispatchProps, IStore } from 'src/store';
+import { setKeyDownloadDisplay, setKeyImportDisplay } from 'src/store/dialog';
+import { generateKeyPair } from 'src/store/user';
 
 // #region style props
-interface ILandingStyleProps {
-    root: string;
-}
-
 interface ILandingProps extends
     ReturnType<typeof mapStateToProps>,
     ReturnType<typeof mapDispatchToProps>,
     ReturnType<typeof globalDispatchProps> {
-    classes: ILandingStyleProps;
+    classes: {
+        [code: string]: string;
+    };
 }
 // #endregion
 
@@ -25,6 +23,14 @@ interface ILandingProps extends
 const styles = (_theme: Theme) => createStyles({
     root: {
         flex: 1
+    },
+    keyPairButton: {
+        width: 240,
+        margin: '4px 12px 4px 12px'
+    },
+    note: {
+        margin: '4px 16px 4px 16px',
+        textAlign: 'justify'
     }
 });
 // #endregion
@@ -37,27 +43,31 @@ const mapStateToProps = (state: IStore) => ({
 const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
     generateKeyPair: () => {
         Promise.all([
-            dispatch(setOverlayDisplay(true)), // FIXME: this doesn't work :(
+            // dispatch(setOverlayDisplay(true)), // FIXME: this doesn't work :(
             dispatch(generateKeyPair())
         ]).then(() => {
             dispatch(setKeyDownloadDisplay(true));
-            dispatch(setOverlayDisplay(false)); // FIXME: this doesn't work :(
+            // dispatch(setOverlayDisplay(false)); // FIXME: this doesn't work :(
         });
     },
     recoverKeyPair: () => {
         dispatch(setKeyDownloadDisplay(true));
+    },
+    importKeyPair: () => {
+        dispatch(setKeyImportDisplay(true));
     }
 });
 // #endregion
 
 class Landing extends React.Component<ILandingProps> {
     render() {
-        const { signedIn, classes, generateKeyPair, recoverKeyPair } = this.props;
+        const { signedIn, classes, generateKeyPair, recoverKeyPair, importKeyPair } = this.props;
 
         return (
             <Grid container justify='center' alignItems='center'
                 className={classes.root}>
                 <KeyDownloadDialog />
+                <KeyImportDialog />
                 <Grid item xs={12}>
                     {
                         !signedIn &&
@@ -70,20 +80,26 @@ class Landing extends React.Component<ILandingProps> {
                     {
                         signedIn &&
                         <React.Fragment>
-                            <Grid container justify='center'>
+                            <Grid container alignItems='center' justify='center'>
                                 <Button color='primary' variant='outlined'
-                                    onClick={() => generateKeyPair()}>
+                                    onClick={() => generateKeyPair()}
+                                    className={classes.keyPairButton}>
                                     Generate Key Pair
                                 </Button>
-                                <span style={{ marginLeft: 12 }} />
                                 <Button color='primary' variant='outlined'
-                                    onClick={() => recoverKeyPair()}>
-                                    Recover Key Pair
+                                    onClick={() => recoverKeyPair()}
+                                    className={classes.keyPairButton}>
+                                    Download Key Pair
+                                </Button>
+                                <Button color='primary' variant='outlined'
+                                    onClick={() => importKeyPair()}
+                                    className={classes.keyPairButton}>
+                                    Import Key Pair
                                 </Button>
                             </Grid>
-                            <Grid container justify='center'>
-                                <Typography color='secondary'>
-                                    This will take time. You will see some sort of notification once the generation is complete.
+                            <Grid container alignItems='center' justify='center'>
+                                <Typography color='secondary' className={classes.note}>
+                                    Generating a key pair will take time. You will see a pop-up dialog once the generation is complete.
                                 </Typography>
                             </Grid>
                         </React.Fragment>

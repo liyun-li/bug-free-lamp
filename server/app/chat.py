@@ -9,7 +9,7 @@ from app.models import db, RequestStatus, Friendship, Message, Room
 from app.utils import check_fields, get_user, get_post_data, \
     friendship_exists_between, safer_commit, commit_response, \
     get_messages_between, get_friendship, sym_encrypt, create_room, \
-    get_room, bad_request, good_request, sym_decrypt
+    get_room, bad_request, sym_decrypt
 from app.events import emit_update
 
 base_route = 'chat'
@@ -35,7 +35,10 @@ def get_inbox():
         if friendship.status != RequestStatus.accepted:
             continue
 
-        user = get_user(user1 if friendship.user2 == me else user2)
+        user = get_user(
+            friendship.user1 if friendship.user2 == me
+            else friendship.user2
+        )
         if not user:
             continue
 

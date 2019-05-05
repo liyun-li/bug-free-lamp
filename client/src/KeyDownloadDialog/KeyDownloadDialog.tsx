@@ -20,7 +20,7 @@ const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
     }
 });
 
-class PrivateKeyDialog extends React.Component<IKeyDownloadDialogProps> {
+class KeyDownloadDialog extends React.Component<IKeyDownloadDialogProps> {
     /**
      * Download a content.
      * @param content Content to be downloaded
@@ -57,10 +57,6 @@ class PrivateKeyDialog extends React.Component<IKeyDownloadDialogProps> {
                         func: () => {
                             this.download(localStorage.getItem('Not Important'), 'rsa.private');
                         }
-                    },
-                    {
-                        text: 'Close',
-                        func: () => setDisplay(false)
                     }
                 ]}
             />
@@ -68,4 +64,4 @@ class PrivateKeyDialog extends React.Component<IKeyDownloadDialogProps> {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(PrivateKeyDialog);
+export default connect(mapStateToProps, mapDispatchToProps)(KeyDownloadDialog);
