@@ -40,11 +40,10 @@ class KeyImportDialog extends React.Component<IKeyImportDialogProps> {
         privateKeyImported: false
     }
 
-    openFileUpload = (id: string) => {
-        document.getElementById(id)!.click();
-    }
+    publicKeyUpload = () => document.getElementById('upload-public')!
+    privateKeyUpload = () => document.getElementById('upload-private')!
 
-    readFile = (file: File, onload: any) => {
+    readFile = (file:    File, onload: any) => {
         const reader = new FileReader();
         reader.onload = onload;
         try {
@@ -57,23 +56,25 @@ class KeyImportDialog extends React.Component<IKeyImportDialogProps> {
     importPublicKey = ({ target }: any) => {
         const { showResponse } = this.props;
 
-        this.readFile(target.files[0], ({ target }: any) => {
+        this.readFile(target.files[0], (e: any) => {
             this.setState({
                 ...this.state,
                 publicKeyImported: false
             }, () => {
-                const publicKey = target.result!;
+                const publicKey = e.target.result!;
                 const privateKey = new NodeRSA(localStorage.getItem('Not Important')!);
-                const message = privateKey.encryptPrivate('I have a cat and she is very chubby');
+                const message = privateKey.encryptPrivate('I have a cat that is very chubby');
 
                 postRequest('/user/set_public_key', {
                     publicKey,
                     message
                 }).then(response => {
                     localStorage.setItem('Important', publicKey);
+                    this.publicKeyUpload().setAttribute('value', '');
                     this.setState({
                         ...this.state,
-                        publicKeyImported: true
+                        publicKeyImported: true,
+                        privateKeyImported: false
                     }, () => {
                         alertResponse(response, showResponse);
                     })
@@ -83,15 +84,26 @@ class KeyImportDialog extends React.Component<IKeyImportDialogProps> {
     }
 
     importPrivateKey = ({ target }: any) => {
+        const { showResponse } = this.props;
+
         this.setState({
             ...this.state,
             privateKeyImported: false
         }, () => {
-            this.readFile(target.files[0], ({ target }: any) => {
+            this.readFile(target.files[0], (e: any) => {
                 try {
-                    localStorage.setItem('Not Important', target.result);
+                    localStorage.setItem('Not Important', e.target.result!);
+                    this.privateKeyUpload().setAttribute('value', '');
+                } catch (error) {
+                    showResponse(error);
                 } finally {
-                    this.props.showResponse('Success!');
+                    this.setState({
+                        ...this.state,
+                        privateKeyImported: true,
+                        publicKeyImported: false
+                    }, () => {
+                        showResponse('Success');
+                    });
                 }
             });
         });
@@ -130,7 +142,7 @@ class KeyImportDialog extends React.Component<IKeyImportDialogProps> {
                         privateKeyImported &&
                         <Grid item xs={12}>
                             <Button variant='outlined' fullWidth color='secondary'
-                                onClick={() => this.openFileUpload('upload-public')}>
+                                onClick={() => this.publicKeyUpload().click()}>
                                 Import Public Key
                             </Button>
                         </Grid>
@@ -139,7 +151,7 @@ class KeyImportDialog extends React.Component<IKeyImportDialogProps> {
                         publicKeyImported &&
                         <Grid item xs={12}>
                             <Button variant='outlined' fullWidth color='secondary'
-                                onClick={() => this.openFileUpload('upload-private')}>
+                                onClick={() => this.privateKeyUpload().click()}>
                                 Import Private Key
                             </Button>
                         </Grid>

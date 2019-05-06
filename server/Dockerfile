@@ -1,7 +1,6 @@
-FROM python:3.6-alpine
+FROM python:3.7-slim-stretch
 MAINTAINER Nobody <dont-contact-us@localhost>
 
-RUN apk add alpine-sdk # libffi-dev
 COPY ./requirements.txt /tmp/r.txt
 RUN pip install -r /tmp/r.txt
 

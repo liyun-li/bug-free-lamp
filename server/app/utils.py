@@ -186,16 +186,22 @@ def get_messages_between(user1, user2):
 
 
 def str2bytes(s):
-    return s if type(s) == bytes else s.encode()
+    return s.encode() if type(s) == str else s
 
 
 def asym_decrypt(key, message):
-    rsa_key = RSA.import_key(str2bytes(key))
-    cipher = PKCS1_OAEP.new(rsa_key)
-    return cipher.decrypt(str2bytes(message))
+    try:
+        rsa_key = RSA.import_key(str2bytes(key))
+        cipher = PKCS1_OAEP.new(rsa_key)
+        return cipher.decrypt(str2bytes(message))
+    except:
+        return None
 
 
 def asym_encrypt(key, message):
-    rsa_key = RSA.import_key(str2bytes(key))
-    cipher = PKCS1_OAEP.new(rsa_key)
-    return cipher.encrypt(str2bytes(message))
+    try:
+        rsa_key = RSA.import_key(str2bytes(key))
+        cipher = PKCS1_OAEP.new(rsa_key)
+        return cipher.encrypt(str2bytes(message))
+    except:
+        return None

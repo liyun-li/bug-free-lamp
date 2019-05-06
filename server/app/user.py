@@ -47,7 +47,7 @@ def set_public_key():
     if user.public_key and user.public_key == public_key:
         return good_request('Success!')
 
-    plaintext = 'I have a cat and she is very chubby'
+    plaintext = 'I have a cat that is very chubby'
     if asym_decrypt(public_key, ciphertext).decode() != plaintext:
         return bad_request('Invalid key')
 

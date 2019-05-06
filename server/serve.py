@@ -5,7 +5,7 @@ app = create_app()
 if __name__ == '__main__':
     app.socketio.run(
         app,
-        host='bug.free.lamp',
+        host='0.0.0.0',
         port=3001,
         certfile='cert.pem',
         keyfile='key.pem'
