@@ -25,6 +25,14 @@ class Config:
 
     DEBUG = not not getenv('DEVELOPMENT_MODE')
 
+    if not getenv('DATA_KEY'):
+        print('DATA_KEY is required')
+        exit(1)
+
+    if not getenv('USERNAME_SALT'):
+        print('USERNAME_SALT is required')
+        exit(1)
+
     if DEBUG:
         SQLALCHEMY_DATABASE_URI = 'sqlite:///app.db'
     elif not (dbuser and dbhost and dbname):
@@ -40,7 +48,7 @@ class Config:
 
     SECRET_KEY = getenv('SERVER_KEY')
     if not SECRET_KEY:
-        print('A secret key is required.')
+        print('SECRET_KEY is required.')
         exit(1)
 
     # track DB mod

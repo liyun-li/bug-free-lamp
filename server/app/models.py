@@ -36,10 +36,7 @@ class Room(db.Model):
 class User(db.Model):
     __tablename__ = 'user'
 
-    system_username = db.Column(
-        db.String(ModelConstant.USERNAME_SIZE),
-        primary_key=True
-    )
+    username_hash = db.Column(db.String(72), primary_key=True)  # bcrypt
 
     username = db.Column(
         db.String(ModelConstant.USERNAME_SIZE)
@@ -58,9 +55,9 @@ class User(db.Model):
     status = db.Column(db.Enum(UserStatus))
 
     __table_args__ = (
-        db.UniqueConstraint(username),
         db.UniqueConstraint(room),
-        db.UniqueConstraint(public_key)
+        db.UniqueConstraint(public_key),
+        db.UniqueConstraint(username_hash)
     )
 
 
@@ -74,12 +71,12 @@ class Friendship(db.Model):
 
     user1 = db.Column(
         db.String(ModelConstant.USERNAME_SIZE),
-        db.ForeignKey(f'{User.__tablename__}.username'),
+        db.ForeignKey(f'{User.__tablename__}.username_hash'),
         primary_key=True
     )
     user2 = db.Column(
         db.String(ModelConstant.USERNAME_SIZE),
-        db.ForeignKey(f'{User.__tablename__}.username'),
+        db.ForeignKey(f'{User.__tablename__}.username_hash'),
         primary_key=True
     )
     status = db.Column(db.Enum(RequestStatus))
@@ -98,13 +95,13 @@ class Message(db.Model):
 
     sender = db.Column(
         db.String(ModelConstant.USERNAME_SIZE),
-        db.ForeignKey(f'{User.__tablename__}.username'),
+        db.ForeignKey(f'{User.__tablename__}.username_hash'),
         primary_key=True
     )
 
     receiver = db.Column(
         db.String(ModelConstant.USERNAME_SIZE),
-        db.ForeignKey(f'{User.__tablename__}.username'),
+        db.ForeignKey(f'{User.__tablename__}.username_hash'),
         primary_key=True
     )
 
@@ -124,6 +121,6 @@ class RoomUserMapping(db.Model):
     )
     user = db.Column(
         db.String(ModelConstant.USERNAME_SIZE),
-        db.ForeignKey(f'{User.__tablename__}.username'),
+        db.ForeignKey(f'{User.__tablename__}.username_hash'),
         primary_key=True
     )

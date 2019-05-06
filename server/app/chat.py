@@ -1,6 +1,6 @@
 from flask import Blueprint, request, session
 from flask_socketio import emit
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from json import dumps
 from time import time
 from app.constants import ModelConstant, ErrorMessage, SessionConstant, \
@@ -9,7 +9,8 @@ from app.models import db, RequestStatus, Friendship, Message, Room
 from app.utils import check_fields, get_user, get_post_data, \
     friendship_exists_between, safer_commit, commit_response, \
     get_messages_between, get_friendship, sym_encrypt, create_room, \
-    get_room, bad_request, sym_decrypt
+    get_room, bad_request, sym_decrypt, get_user_by_hash, get_me, \
+    hash_username, decrypt_username
 from app.events import emit_update
 
 base_route = 'chat'
@@ -24,27 +25,44 @@ def before_request_user():
 
 @chat.route(f'/{base_route}/get', methods=['GET'])
 def get_inbox():
-    me = session.get('username')
+    print(decrypt_username(get_me()))
+    me = hash_username(decrypt_username(get_me()))
+    print()
+    print()
+    print()
+    print(me)
+
+    test = Friendship.query.all()
+    for t in test:
+        print(t.user1, t.user2)
+    print()
+    print()
+    print()
 
     friends = []
     friendships = Friendship.query.filter(
-        or_(Friendship.user1 == me, Friendship.user2 == me)
+        and_(
+            or_(Friendship.user1 == me, Friendship.user2 == me),
+            Friendship.status == RequestStatus.accepted
+        )
     ).all()
 
-    for friendship in friendships:
-        if friendship.status != RequestStatus.accepted:
-            continue
+    print(friendships)
 
-        user = get_user(
+    for friendship in friendships:
+        friend = get_user_by_hash(
             friendship.user1 if friendship.user2 == me
             else friendship.user2
         )
-        if not user:
+
+        if not friend:
             continue
 
         friends.append({
-            'username': user.username,
-            'publicKey': user.public_key
+            'username': sym_decrypt(user.username),
+            'publicKey': friend.public_key,
+            'mood': friend.mood,
+            'status': friend.status
         })
 
     return dumps(friends)

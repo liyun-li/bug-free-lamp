@@ -1,12 +1,15 @@
 from flask import Blueprint, request, session
 from flask_socketio import emit
 from json import dumps
+from bcrypt import hashpw
+from os import getenv
 from app.models import db, RequestStatus, Friendship, Room
 from app.constants import ModelConstant, SessionConstant, ErrorMessage, \
     EventConstant
 from app.utils import check_fields, get_user, safer_commit, get_friendship, \
     commit_response, get_post_data, sym_encrypt, create_room, \
-    bad_request, good_request, get_me, asym_decrypt
+    bad_request, good_request, get_me, asym_decrypt, sym_decrypt, \
+    decrypt_username, decrypt_username, hash_username, get_user_by_hash
 from app.events import emit_update
 
 base_route = 'user'
@@ -21,9 +24,15 @@ def before_request_user():
 
 @user.route(f'/{base_route}/hi')
 def hi():
-    user = get_user(get_me())
+    decrypted = sym_decrypt(bytes.fromhex(get_me())).decode()
+
+    user = get_user(decrypted)
+
+    if not user:
+        return dumps({})
+
     return dumps({
-        'username': user.username,
+        'username': decrypted,
         'publicKey': user.public_key,
         'mood': user.mood,
         'status': user.status
@@ -66,7 +75,9 @@ def search_user():
     if not user:
         return bad_request(ErrorMessage.USER_NOT_FOUND)
 
-    return good_request(user.username)
+    decrypted = sym_decrypt(bytes.fromhex(user.username)).decode()
+
+    return good_request(decrypted)
 
 
 @user.route(f'/{base_route}/add', methods=['POST'])
@@ -82,15 +93,18 @@ def add_user():
         return bad_request('Did you just try to befriend yourself?')
 
     receiver = get_user(username)
+
     if not receiver:
         return bad_request(ErrorMessage.USER_NOT_FOUND)
 
-    friendship = get_friendship(me, username)
+    hashed_me = hash_username(decrypt_username(me))
+    hashed_notme = hash_username(username)
+    friendship = get_friendship(hashed_me, hashed_notme)
 
     if not friendship:
         friendship = Friendship(
-            user1=me,
-            user2=username,
+            user1=hashed_me,
+            user2=hashed_notme,
             status=RequestStatus.pending
         )
 
@@ -122,8 +136,11 @@ def accept_friend_request():
     if not check_fields([username]):
         return bad_request(ErrorMessage.EMPTY_FIELDS)
 
+    hashed_me = hash_username(decrypt_username(get_me()))
+    hashed_notme = hash_username(username)
+
     # Establish friendship
-    friendship = get_friendship(username, session.get('username'))
+    friendship = get_friendship(hashed_notme, hashed_me)
 
     if not friendship:
         return bad_request(ErrorMessage.USER_NOT_FOUND)
@@ -158,12 +175,13 @@ def accept_friend_request():
 def reject_friend_request():
     data = get_post_data()
     username = data.get('username')
+    me = session.get(SessionConstant.USERNAME)
 
     if not check_fields([username]):
         return bad_request(ErrorMessage.EMPTY_FIELDS)
 
     # Find friendship
-    friendship = get_friendship(username, session.get('username'))
+    friendship = get_friendship(username, decrypt)
 
     if not friendship:
         return bad_request(ErrorMessage.USER_NOT_FOUND)
@@ -180,10 +198,15 @@ def get_requests():
     me = session.get('username')
 
     requests = Friendship.query.filter_by(
-        user2=me,
+        user2=hash_username(decrypt_username(me)),
         status=RequestStatus.pending
     ).all()
-    senders = [request.user1 for request in requests]
+
+    for request in requests:
+        sender = get_user_by_hash(request.user1)
+
+    senders = [decrypt_username(get_user_by_hash(
+        request.user1).username) for request in requests]
 
     return good_request(dumps(senders))
 

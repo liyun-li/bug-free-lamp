@@ -11,6 +11,10 @@ from app.models import db, User, Friendship, Message, RequestStatus, Room
 from app.constants import ModelConstant, SessionConstant
 
 
+def str2bytes(s):
+    return s.encode() if type(s) == str else s
+
+
 def safer_commit():
     try:
         db.session.commit()
@@ -44,7 +48,11 @@ def check_fields(fields):
 
 
 def get_user(username):
-    return User.query.filter_by(system_username=username.lower()).first()
+    lowercased = username.lower()
+    if type(lowercased) != bytes:
+        lowercased = lowercased.encode()
+    userhash = hashpw(lowercased, getenv('USERNAME_SALT').encode())
+    return User.query.filter_by(username_hash=userhash).first()
 
 
 def get_friendship(user1, user2):
@@ -89,7 +97,7 @@ def sym_encrypt(plaintext, key=None):
 
     key = (key or getenv('DATA_KEY')).encode()
     cipher = AES.new(key, AES.MODE_GCM)
-    ciphertext, tag = cipher.encrypt_and_digest(plaintext)
+    ciphertext, tag = cipher.encrypt_and_digest(str2bytes(plaintext))
 
     if len(cipher.nonce) != ModelConstant.GCM_NONCE_SIZE or \
             len(tag) != ModelConstant.GCM_TAG_SIZE:
@@ -125,7 +133,7 @@ def sym_decrypt(nonce_tag_ciphertext, key=None):
 
 def create_room():
     """
-    Returns an encrypted room ID
+    Returns an encrypted room ID, encrypted and hexxed
     """
 
     room_id = token_bytes(ModelConstant.ROOM_ID_SIZE)
@@ -186,10 +194,6 @@ def get_messages_between(user1, user2):
     ).order_by(Message.timestamp).all()
 
 
-def str2bytes(s):
-    return s.encode() if type(s) == str else s
-
-
 def asym_decrypt(key, message):
     rsa_key = RSA.import_key(str2bytes(key))
     cipher = PKCS1_OAEP.new(rsa_key)
@@ -200,3 +204,18 @@ def asym_encrypt(key, message):
     rsa_key = RSA.import_key(str2bytes(key))
     cipher = PKCS1_OAEP.new(rsa_key)
     return cipher.encrypt(str2bytes(message))
+
+
+def decrypt_username(username):
+    return sym_decrypt(bytes.fromhex(username)).decode()
+
+
+def hash_username(username):
+    if type(username) == str:
+        username = username.encode()
+    return hashpw(username, getenv('USERNAME_SALT').encode()).decode()
+
+
+def get_user_by_hash(uhash):
+    user = User.query.filter_by(username_hash=uhash.encode()).first()
+    return user

@@ -29,14 +29,20 @@ const withAuthentication = (Component: React.ComponentClass) => {
 
     class WithAuthentication extends React.Component<IWithAuthenticationProps> {
         componentDidMount() {
-            const { setLoginStatus, setMe } = this.props;
+            const { setLoginStatus, setMe, setFriendRequests } = this.props;
 
             getRequest('/user/hi')
                 .then(response => {
                     setLoginStatus(true);
                     if (response.data) setMe(response.data);
+                    getRequest('/user/friend_requests').then(response => {
+                        const requests = response.data;
+                        setFriendRequests(requests);
+                    });
                 })
-                .catch(_error => setLoginStatus(false));
+                .catch(_error => {
+                    setLoginStatus(false)
+                });
         }
 
         componentDidUpdate(prevProps: IWithAuthenticationProps) {
