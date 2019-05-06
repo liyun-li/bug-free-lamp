@@ -44,15 +44,14 @@ def set_public_key():
     if not user:
         return bad_request(ErrorMessage.UNKNOWN_ERROR)
 
-    if user.public_key and user.public_key == public_key:
+    if not user.public_key:
+        user.public_key = public_key
+        return commit_response('Success!')
+
+    if user.public_key == public_key:
         return good_request('Success!')
 
-    plaintext = 'I have a cat that is very chubby'
-    if asym_decrypt(public_key, ciphertext).decode() != plaintext:
-        return bad_request('Invalid key')
-
-    user.public_key = public_key
-    return commit_response()
+    return bad_request(ErrorMessage.BREACHED)
 
 
 @user.route(f'/{base_route}/search', methods=['POST'])

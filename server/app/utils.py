@@ -22,6 +22,7 @@ def safer_commit():
 
 
 def commit_response(success_message='', code_success=204):
+    code_success = 200 if success_message else code_success
     return (success_message, code_success) if safer_commit() \
         else ('Something went wrong :\'(', 500)
 
@@ -190,18 +191,12 @@ def str2bytes(s):
 
 
 def asym_decrypt(key, message):
-    try:
-        rsa_key = RSA.import_key(str2bytes(key))
-        cipher = PKCS1_OAEP.new(rsa_key)
-        return cipher.decrypt(str2bytes(message))
-    except:
-        return None
+    rsa_key = RSA.import_key(str2bytes(key))
+    cipher = PKCS1_OAEP.new(rsa_key)
+    return cipher.decrypt(str2bytes(message))
 
 
 def asym_encrypt(key, message):
-    try:
-        rsa_key = RSA.import_key(str2bytes(key))
-        cipher = PKCS1_OAEP.new(rsa_key)
-        return cipher.encrypt(str2bytes(message))
-    except:
-        return None
+    rsa_key = RSA.import_key(str2bytes(key))
+    cipher = PKCS1_OAEP.new(rsa_key)
+    return cipher.encrypt(str2bytes(message))

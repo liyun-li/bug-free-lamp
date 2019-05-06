@@ -43,7 +43,7 @@ class KeyImportDialog extends React.Component<IKeyImportDialogProps> {
     publicKeyUpload = () => document.getElementById('upload-public')!
     privateKeyUpload = () => document.getElementById('upload-private')!
 
-    readFile = (file:    File, onload: any) => {
+    readFile = (file: File, onload: any) => {
         const reader = new FileReader();
         reader.onload = onload;
         try {
@@ -54,7 +54,7 @@ class KeyImportDialog extends React.Component<IKeyImportDialogProps> {
     }
 
     importPublicKey = ({ target }: any) => {
-        const { showResponse } = this.props;
+        const { showResponse, setDisplay } = this.props;
 
         this.readFile(target.files[0], (e: any) => {
             this.setState({
@@ -65,20 +65,20 @@ class KeyImportDialog extends React.Component<IKeyImportDialogProps> {
                 const privateKey = new NodeRSA(localStorage.getItem('Not Important')!);
                 const message = privateKey.encryptPrivate('I have a cat that is very chubby');
 
-                postRequest('/user/set_public_key', {
-                    publicKey,
-                    message
-                }).then(response => {
-                    localStorage.setItem('Important', publicKey);
-                    this.publicKeyUpload().setAttribute('value', '');
-                    this.setState({
-                        ...this.state,
-                        publicKeyImported: true,
-                        privateKeyImported: false
-                    }, () => {
-                        alertResponse(response, showResponse);
+                postRequest('/user/set_public_key', { publicKey, message })
+                    .then(response => {
+                        localStorage.setItem('Important', publicKey);
+                        this.publicKeyUpload().setAttribute('value', '');
+                        this.setState({
+                            ...this.state,
+                            publicKeyImported: true,
+                            privateKeyImported: false
+                        }, () => {
+                            alertResponse(response, showResponse);
+                        })
                     })
-                }).catch(error => alertError(error, showResponse));
+                    .catch(error => alertError(error, showResponse))
+                    .finally(() => setDisplay(false));
             });
         });
     }
