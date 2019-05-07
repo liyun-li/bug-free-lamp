@@ -25,19 +25,7 @@ def before_request_user():
 
 @chat.route(f'/{base_route}/get', methods=['GET'])
 def get_inbox():
-    print(decrypt_username(get_me()))
     me = hash_username(decrypt_username(get_me()))
-    print()
-    print()
-    print()
-    print(me)
-
-    test = Friendship.query.all()
-    for t in test:
-        print(t.user1, t.user2)
-    print()
-    print()
-    print()
 
     friends = []
     friendships = Friendship.query.filter(
@@ -46,8 +34,6 @@ def get_inbox():
             Friendship.status == RequestStatus.accepted
         )
     ).all()
-
-    print(friendships)
 
     for friendship in friendships:
         friend = get_user_by_hash(
@@ -59,7 +45,7 @@ def get_inbox():
             continue
 
         friends.append({
-            'username': sym_decrypt(user.username),
+            'username': decrypt_username(friend.username),
             'publicKey': friend.public_key,
             'mood': friend.mood,
             'status': friend.status
@@ -92,7 +78,7 @@ def get_messages():
 
 @chat.route(f'/{base_route}/send', methods=['POST'])
 def send_message():
-    sender = session.get('username')
+    sender = hash_username(decrypt_username(get_me()))
     data = get_post_data()
 
     receiver = data.get('receiver')
@@ -101,6 +87,8 @@ def send_message():
     # check that fields are not empty
     if not check_fields([receiver, message]):
         return bad_request(ErrorMessage.EMPTY_MESSAGE)
+
+    receiver = hash_username(receiver)
 
     friendship = get_friendship(sender, receiver)
     if not friendship:
