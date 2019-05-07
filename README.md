@@ -5,8 +5,10 @@ School project woo!
 
 * Node and NPM
 * Python 3
+* bcrypt `pip install bcrypt` or something
 * (Optional) Docker
 * (Optional) Docker Compose
+* (Optional) pwgen
 
 ## Deployment
 
