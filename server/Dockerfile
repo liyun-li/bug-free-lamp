@@ -1,4 +1,4 @@
-FROM python:3.7-slim-stretch
+FROM python:3.6-slim-stretch
 MAINTAINER Nobody <dont-contact-us@localhost>
 
 RUN apt update && apt upgrade -y
