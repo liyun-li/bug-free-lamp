@@ -30,14 +30,14 @@ def emit_ok(message=''):
 def login(_data):
     room_id = session.get(SessionConstant.UPDATE_STREAM)
     join_room(room_id)
-    emit_ok()
+    emit_ok('You have logged in.')
 
 
 @socketio.on('logout', namespace=EventConstant.NS_USER)
 def logout(_data):
     room_id = session.get(SessionConstant.UPDATE_STREAM)
     leave_room(room_id)
-    emit_ok()
+    emit_ok('You have logged out.')
 
 
 @socketio.on('join_chat', namespace=EventConstant.NS_CHAT)

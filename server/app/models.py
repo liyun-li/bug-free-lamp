@@ -106,7 +106,8 @@ class Message(db.Model):
     )
 
     timestamp = db.Column(db.Integer, primary_key=True)
-    message = db.Column(db.Text)
+    message_for_receiver = db.Column(db.Text)
+    message_for_sender = db.Column(db.Text)
 
     read_by_receiver = db.Column(db.Boolean)
 

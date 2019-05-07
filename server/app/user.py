@@ -9,7 +9,8 @@ from app.constants import ModelConstant, SessionConstant, ErrorMessage, \
 from app.utils import check_fields, get_user, safer_commit, get_friendship, \
     commit_response, get_post_data, sym_encrypt, create_room, \
     bad_request, good_request, get_me, asym_decrypt, sym_decrypt, \
-    decrypt_username, decrypt_username, hash_username, get_user_by_hash
+    decrypt_username, decrypt_username, hash_username, get_user_by_hash, \
+    get_my_hash
 from app.events import emit_update
 
 base_route = 'user'
@@ -24,8 +25,7 @@ def before_request_user():
 
 @user.route(f'/{base_route}/hi')
 def hi():
-    decrypted = sym_decrypt(bytes.fromhex(get_me())).decode()
-
+    decrypted = decrypt_username(get_me())
     user = get_user(decrypted)
 
     if not user:
@@ -42,12 +42,11 @@ def hi():
 @user.route(f'/{base_route}/set_public_key', methods=['POST'])
 def set_public_key():
     data = get_post_data()
-    user = get_user(get_me())
+    user = get_user(decrypt_username(get_me()))
 
     public_key = data.get('publicKey')
-    ciphertext = data.get('message')
 
-    if not check_fields([public_key, ciphertext]):
+    if not check_fields([public_key]):
         return bad_request('Empty file cannot be uploaded')
 
     if not user:
@@ -136,8 +135,8 @@ def accept_friend_request():
     if not check_fields([username]):
         return bad_request(ErrorMessage.EMPTY_FIELDS)
 
-    hashed_me = hash_username(decrypt_username(get_me()))
-    hashed_notme = hash_username(username)
+    hashed_me = get_my_hash()
+    hashed_notme = hash_username(username.strip().lower())
 
     # Establish friendship
     friendship = get_friendship(hashed_notme, hashed_me)
@@ -195,10 +194,10 @@ def reject_friend_request():
 
 @user.route(f'/{base_route}/friend_requests', methods=['GET'])
 def get_requests():
-    me = session.get('username')
+    print(get_my_hash())
 
     requests = Friendship.query.filter_by(
-        user2=hash_username(decrypt_username(me)),
+        user2=get_my_hash(),
         status=RequestStatus.pending
     ).all()
 

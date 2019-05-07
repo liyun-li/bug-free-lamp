@@ -7,8 +7,5 @@
             "node_modules/**/*.ts",
             "coverage/lcov-report/*.js"
         ]
-    },
-    "rule": {
-        "quotemark": [true, "single"]
     }
 }

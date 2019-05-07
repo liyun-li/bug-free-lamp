@@ -7,10 +7,12 @@ import * as io from 'socket.io-client';
 import { keyCodes } from 'src/constants';
 import { getRequest, postRequest, SERVER_URL } from 'src/httpRequest';
 import { setAlertBox } from 'src/store/alertBox';
-import { IMessage, setMessages } from 'src/store/chat';
+import { IMessage, setMessages, IMessageModel } from 'src/store/chat';
 import { setOverlayDisplay } from 'src/store/overlay';
 import { IStore } from 'src/store/store';
 import { IUser, setCurrentChat, setFriendRequests, setFriends } from 'src/store/user';
+import { RouteComponentProps } from 'react-router-dom';
+import { encryptMessage, decryptMessage } from 'src/utils';
 
 // #region interfaces
 interface IChatStyles {
@@ -30,14 +32,10 @@ interface IChatStyles {
 }
 
 interface IChatProps extends
+    RouteComponentProps,
     ReturnType<typeof mapStateToProps>,
     ReturnType<typeof mapDispatchToProps> {
     classes: IChatStyles;
-}
-
-export interface IStatusMessage {
-    status: string;
-    message: string;
 }
 
 interface IChatState {
@@ -105,7 +103,8 @@ const styles = createStyles({
 const mapStateToProps = (state: IStore) => ({
     friends: state.user.friends || [],
     messages: state.chat.messages || [],
-    currentChat: state.user.currentChat
+    currentChat: state.user.currentChat,
+    me: state.user.me
 });
 
 const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
@@ -149,15 +148,24 @@ class Chat extends React.Component<IChatProps, IChatState> {
         chatSocket: io.connect(`${SERVER_URL}/chat`)
     }
 
+    // #region componentDidMount
     componentDidMount() {
-        const { getFriends, setMessages } = this.props;
+        const { getFriends, setMessages, me } = this.props;
         const { chatSocket } = this.state;
 
         getFriends();
 
-        chatSocket.on('get new message', (response: IMessage) => {
+        chatSocket.on('get new message', (response: IMessageModel) => {
             const newMessages = [...this.props.messages];
-            newMessages.push(response);
+            newMessages.push({
+                ...response,
+                message: decryptMessage(
+                    response.sender === me.username
+                        ? response.messageForSender
+                        : response.messageForReceiver,
+                    me.publicKey
+                )
+            });
             setMessages(newMessages);
         });
 
@@ -165,24 +173,27 @@ class Chat extends React.Component<IChatProps, IChatState> {
             getFriends();
         });
     }
+    // #endregion
 
+    // #region componentWillUnmount
     componentWillUnmount() {
         const { chatSocket } = this.state;
         chatSocket.emit('leave_chat', {});
     }
+    // #endregion
 
     render() {
         const {
-            classes, friends, setMessages, setOverlayDisplay, showResponse, 
-            currentChat, setCurrentChat, messages
+            classes, friends, setMessages, setOverlayDisplay, showResponse,
+            currentChat, setCurrentChat, messages, me
         } = this.props;
         const { message, chatSocket } = this.state;
 
         const chatMessages = messages.map(_message => {
-            const { username, timestamp, message } = _message;
+            const { sender, timestamp, message } = _message;
             return (
-                <Grid item xs={12}>
-                    <Chip label={`${username} [${timestamp}]: ${message}`}
+                <Grid item xs={12} key={`${timestamp}`}>
+                    <Chip label={`${sender} [${timestamp}]: ${message}`}
                         color="primary" icon={<Face />}
                         className={classes.message}
                     />
@@ -207,8 +218,8 @@ class Chat extends React.Component<IChatProps, IChatState> {
                         <Divider />
                         {
                             friends.map(friend => (
-                                <React.Fragment>
-                                    <ListItem button key={friend.username} 
+                                <React.Fragment key={friend.username}>
+                                    <ListItem button
                                         selected={currentChat.username === friend.username}
                                         onClick={() => {
                                             setOverlayDisplay(true);
@@ -220,21 +231,40 @@ class Chat extends React.Component<IChatProps, IChatState> {
                                             postRequest('/chat/get', {
                                                 username: friend.username
                                             }).then(response => {
-                                                const messages = response.data;
+                                                const messages: IMessageModel[] = response.data;
+                                                const decryptedMessages: IMessage[] = [];
 
+                                                (messages || []).forEach(message => {
+                                                    try {
+                                                        decryptedMessages.push({
+                                                            ...message,
+                                                            message: decryptMessage(
+                                                                message.sender === me.username
+                                                                    ? message.messageForSender
+                                                                    : message.messageForReceiver,
+                                                                localStorage.getItem('Not Important')!
+                                                            )
+                                                        });
+                                                    } catch (error) {
+                                                        console.error(error);
+                                                    }
+                                                });
+
+                                                setMessages(decryptedMessages);
+                                                setOverlayDisplay(false);
+                                            }).catch(error => {
+                                                if (error && error.response) {
+                                                    showResponse(error.response.data);
+                                                }
+                                                setMessages([]);
+                                                setOverlayDisplay(false);
+                                            }).finally(() => {
                                                 setCurrentChat({
                                                     username: friend.username,
                                                     publicKey: friend.publicKey || '',
                                                     mood: friend.mood || '',
                                                     status: friend.status || ''
                                                 });
-                                                setMessages(messages);
-                                                setOverlayDisplay(false);
-                                            }).catch(error => {
-                                                if (error && error.response) {
-                                                    showResponse(error.response.data);
-                                                }
-                                                setOverlayDisplay(false);
                                             });
                                         }}
                                     >
@@ -271,18 +301,25 @@ class Chat extends React.Component<IChatProps, IChatState> {
                                                 message: e.target.value
                                             })} value={message}
                                             onKeyDown={(e) => {
-                                                if (e.keyCode === keyCodes.enter) {
+                                                if (e.keyCode === keyCodes.enter && currentChat.publicKey && me.publicKey) {
+                                                    setOverlayDisplay(true);
                                                     // Emit message to server
                                                     postRequest('/chat/send', {
                                                         receiver: currentChat.username,
-                                                        message
+                                                        messageForReceiver: encryptMessage(message, currentChat.publicKey),
+                                                        messageForSender: encryptMessage(message, me.publicKey)
+                                                    }).then(() => {
+                                                        setOverlayDisplay(false);
+                                                        // Clear message box
+                                                        this.setState({
+                                                            ...this.state,
+                                                            message: ''
+                                                        });
                                                     });
-
-                                                    // Clear message box
-                                                    this.setState({
-                                                        ...this.state,
-                                                        message: ''
-                                                    });
+                                                } else if (!me.publicKey) {
+                                                    showResponse('Your public key is empty.');
+                                                } else if (!currentChat.publicKey) {
+                                                    showResponse('Your friend does not have a public key.')
                                                 }
                                             }}
                                         />

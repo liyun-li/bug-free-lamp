@@ -5,7 +5,7 @@ from os import getenv
 from app.models import db, User
 from app.constants import ErrorMessage, SessionConstant, EventConstant
 from app.utils import check_fields, get_user, get_post_data, safer_commit, \
-    create_room, good_request, sym_encrypt, sym_decrypt
+    create_room, good_request, sym_encrypt, sym_decrypt, decrypt_username
 
 
 auth = Blueprint('auth', __name__)
@@ -24,7 +24,8 @@ def login():
     if not (user and checkpw(password.encode('utf-8'), user.password)):
         return ErrorMessage.INVALID_CREDENTIAL, 400
 
-    session[SessionConstant.USERNAME] = sym_encrypt(user.username).hex()
+    session[SessionConstant.USERNAME] = user.username
+    session[SessionConstant.USERNAME_HASH] = user.username_hash.decode()
     session[SessionConstant.UPDATE_STREAM] = sym_decrypt(
         bytes.fromhex(user.room)
     )
@@ -60,10 +61,12 @@ def register():
     )
     password_hash = hashpw(password.encode(), gensalt())
     room = create_room()
+    encrypted_username = sym_encrypt(username).hex()
+    decrypted_username = decrypt_username(encrypted_username)
 
     user = User(
         username_hash=username_hash,
-        username=sym_encrypt(username).hex(),
+        username=encrypted_username,
         password=password_hash,
         room=room
     )
@@ -73,11 +76,12 @@ def register():
     if not safer_commit():
         return ErrorMessage.REGISTRATION_ERROR, 400
 
-    session[SessionConstant.USERNAME] = sym_encrypt(username).hex()
+    session[SessionConstant.USERNAME] = encrypted_username
+    session[SessionConstant.USERNAME_HASH] = username_hash.decode()
     session[SessionConstant.UPDATE_STREAM] = sym_decrypt(bytes.fromhex(room))
 
     return dumps({
-        'username': username
+        'username': decrypted_username
     })
 
 

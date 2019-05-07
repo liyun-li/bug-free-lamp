@@ -1,16 +1,26 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Action, Dispatch } from 'redux';
-import { getRequest, SERVER_URL } from 'src/httpRequest';
+import { getRequest, SERVER_URL, postRequest } from 'src/httpRequest';
 import { IStore } from 'src/store/store';
-import { setLoginStatus, setFriendRequests, IUser, setMe } from 'src/store/user';
+import { setLoginStatus, setFriendRequests, IUser, setMe, setMyPublicKey } from 'src/store/user';
 import * as io from 'socket.io-client';
+import { setAlertBox } from 'src/store/alertBox';
+
 
 const withAuthentication = (Component: React.ComponentClass) => {
+    // #region interfaces
     interface IWithAuthenticationProps extends
         ReturnType<typeof mapStateToProps>,
         ReturnType<typeof mapDispatchToProps> { }
 
+    interface IStatusMessage {
+        status: string;
+        message: string;
+    }
+    // #endregion
+
+    // #region react-redux
     const mapStateToProps = (state: IStore) => ({
         signedIn: state.user.signedIn
     });
@@ -24,17 +34,41 @@ const withAuthentication = (Component: React.ComponentClass) => {
         },
         setMe: (me: IUser) => {
             dispatch(setMe(me));
+        },
+        setMyPublicKey: (publicKey: string) => {
+            dispatch(setMyPublicKey(publicKey));
+        },
+        showResponse: (text: string) => {
+            dispatch(setAlertBox({
+                text,
+                display: true
+            }));
         }
     });
+    // #endregion
 
     class WithAuthentication extends React.Component<IWithAuthenticationProps> {
+        // #region did mount
         componentDidMount() {
-            const { setLoginStatus, setMe, setFriendRequests } = this.props;
+            const { setLoginStatus, setMe, setFriendRequests, setMyPublicKey } = this.props;
 
             getRequest('/user/hi')
                 .then(response => {
                     setLoginStatus(true);
-                    if (response.data) setMe(response.data);
+
+                    const me = response.data;
+
+                    if (me) {
+                        const myPublicKey = localStorage.getItem('Important')!;
+                        setMe(me);
+                        if (!me.publicKey && myPublicKey) {
+                            postRequest('/user/set_public_key', { publicKey: myPublicKey })
+                                .then(_response => {
+                                    setMyPublicKey(myPublicKey);
+                                });
+                        }
+                    }
+
                     getRequest('/user/friend_requests').then(response => {
                         const requests = response.data;
                         setFriendRequests(requests);
@@ -44,9 +78,11 @@ const withAuthentication = (Component: React.ComponentClass) => {
                     setLoginStatus(false)
                 });
         }
+        // #endregion
 
+        // #region did update
         componentDidUpdate(prevProps: IWithAuthenticationProps) {
-            const { signedIn } = this.props;
+            const { signedIn, showResponse } = this.props;
 
             if (!prevProps.signedIn && signedIn) {
                 const { setFriendRequests } = this.props;
@@ -60,6 +96,10 @@ const withAuthentication = (Component: React.ComponentClass) => {
                     mySocket.emit('logout', {});
                 });
 
+                mySocket.on('update user status', (response: IStatusMessage) => {
+                    showResponse(response && response.message || '');
+                });
+
                 mySocket.on('update friend request', (_response: {}) => {
                     getRequest('/user/friend_requests').then(response => {
                         const requests = response.data;
@@ -68,6 +108,7 @@ const withAuthentication = (Component: React.ComponentClass) => {
                 });
             }
         }
+        // #endregion
 
         render() {
             return <Component {...this.props} />;

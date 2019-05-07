@@ -10,7 +10,7 @@ from app.utils import check_fields, get_user, get_post_data, \
     friendship_exists_between, safer_commit, commit_response, \
     get_messages_between, get_friendship, sym_encrypt, create_room, \
     get_room, bad_request, sym_decrypt, get_user_by_hash, get_me, \
-    hash_username, decrypt_username
+    hash_username, decrypt_username, get_my_hash
 from app.events import emit_update
 
 base_route = 'chat'
@@ -25,7 +25,7 @@ def before_request_user():
 
 @chat.route(f'/{base_route}/get', methods=['GET'])
 def get_inbox():
-    me = hash_username(decrypt_username(get_me()))
+    me = get_my_hash()
 
     friends = []
     friendships = Friendship.query.filter(
@@ -59,16 +59,19 @@ def get_messages():
     # TODO: Don't get everything at once. Paginate instead.
     data = get_post_data()
     friend = data.get('username')
-    me = session.get('username')
+    me = get_my_hash()
 
     if not check_fields([friend]):
         return bad_request(ErrorMessage.USER_NOT_FOUND)
 
+    friend = hash_username(friend)
+
     messages = [
         {
-            'username': message.sender,
+            'sender': decrypt_username(get_user_by_hash(message.sender).username),
             'timestamp': message.timestamp,
-            'message': message.message
+            'messageForSender': message.message_for_sender,
+            'messageForReceiver': message.message_for_receiver
         } for message in
         get_messages_between(me, friend)
     ]
@@ -82,10 +85,11 @@ def send_message():
     data = get_post_data()
 
     receiver = data.get('receiver')
-    message = data.get('message')
+    message_for_receiver = data.get('messageForReceiver')
+    message_for_sender = data.get('messageForSender')
 
     # check that fields are not empty
-    if not check_fields([receiver, message]):
+    if not check_fields([receiver, message_for_receiver, message_for_sender]):
         return bad_request(ErrorMessage.EMPTY_MESSAGE)
 
     receiver = hash_username(receiver)
@@ -99,13 +103,14 @@ def send_message():
     except ValueError:
         return bad_request(ErrorMessage.INVALID_TIMESTAMP)
 
-    message_model = Message(
-        sender=sender, receiver=receiver,
-        message=message, timestamp=timestamp,
+    message = Message(
+        sender=sender, receiver=receiver, timestamp=timestamp,
+        message_for_receiver=message_for_receiver,
+        message_for_sender=message_for_sender,
         read_by_receiver=True
     )
 
-    db.session.add(message_model)
+    db.session.add(message)
     response = commit_response()
 
     if response[1] < 300:
@@ -118,11 +123,11 @@ def send_message():
             {
                 'timestamp': timestamp,
                 'username': sender,
-                'message': message
+                'messageForSender': message_for_sender,
+                'messageForReceiver': message_for_receiver
             },
             room=room_id,
             namespace=EventConstant.NS_CHAT,
-            callback=lambda x: print(message, sender)
         )
 
     return response

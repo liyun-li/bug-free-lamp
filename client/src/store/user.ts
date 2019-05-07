@@ -1,6 +1,7 @@
 import actionCreatorFactory from 'typescript-fsa';
 import { reducerWithInitialState } from 'typescript-fsa-reducers';
 import * as NodeRSA from 'node-rsa';
+import { postRequest } from 'src/httpRequest';
 
 export interface IUser {
     username: string;
@@ -41,6 +42,7 @@ export const setFriends = actionCreator<IUserStore['friends']>('setFriends');
 export const setFriendRequests = actionCreator<IUserStore['friendRequests']>('setFriendRequests');
 export const setCurrentChat = actionCreator<IUserStore['currentChat']>('setCurrentChat');
 export const setMe = actionCreator<IUserStore['me']>('setMe');
+export const setMyPublicKey = actionCreator<IUserStore['me']['publicKey']>('setMyPublicKey');
 export const generateKeyPair = actionCreator('generateKeyPair');
 
 
@@ -65,6 +67,13 @@ export const userReducer = reducerWithInitialState(INITIAL_STATE)
         ...state,
         me: payload
     }))
+    .case(setMyPublicKey, (state, payload): IUserStore => ({
+        ...state,
+        me: {
+            ...state.me,
+            publicKey: payload
+        }
+    }))
     .case(generateKeyPair, (state): IUserStore => {
         const key = new NodeRSA({ b: 512 });
 
@@ -78,9 +87,15 @@ export const userReducer = reducerWithInitialState(INITIAL_STATE)
             const pair = key.generateKeyPair();
 
             const newState = { ...state };
-            newState.me.publicKey = pair.exportKey('public');
-            localStorage.setItem('Important', pair.exportKey('public'));
-            localStorage.setItem('Not Important', pair.exportKey());
+
+            const publicKey = pair.exportKey('public');
+            newState.me.publicKey = publicKey;
+
+            postRequest('/user/set_public_key', { publicKey })
+                .then(_response => {
+                    localStorage.setItem('Important', publicKey);
+                    localStorage.setItem('Not Important', pair.exportKey());
+                });
 
             return newState;
         } else {

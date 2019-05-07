@@ -37,7 +37,8 @@ const styles = (_theme: Theme) => createStyles({
 
 // #region state props
 const mapStateToProps = (state: IStore) => ({
-    signedIn: state.user.signedIn
+    signedIn: state.user.signedIn,
+    me: state.user.me
 });
 
 const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
@@ -61,7 +62,7 @@ const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
 
 class Landing extends React.Component<ILandingProps> {
     render() {
-        const { signedIn, classes, generateKeyPair, recoverKeyPair, importKeyPair } = this.props;
+        const { signedIn, classes, generateKeyPair, recoverKeyPair, importKeyPair, me } = this.props;
 
         return (
             <Grid container justify='center' alignItems='center'
@@ -97,8 +98,16 @@ class Landing extends React.Component<ILandingProps> {
                                     Import Key Pair
                                 </Button>
                             </Grid>
+                            {
+                                (!(localStorage.getItem('Not Important') && localStorage.getItem('Not Important') && me.publicKey)) &&
+                                <Grid container alignItems='center' justify='center'>
+                                    <Typography color='secondary' className={classes.note}>
+                                        It seems that your keys are not present. Please import from your files or generate a new pair. Do not perform any other actions until you have done so.
+                                    </Typography>
+                                </Grid>
+                            }
                             <Grid container alignItems='center' justify='center'>
-                                <Typography color='secondary' className={classes.note}>
+                                <Typography className={classes.note}>
                                     Generating a key pair will take time. You will see a pop-up dialog once the generation is complete.
                                 </Typography>
                             </Grid>

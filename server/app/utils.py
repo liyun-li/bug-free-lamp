@@ -150,6 +150,13 @@ def get_me():
     return session.get(SessionConstant.USERNAME)
 
 
+def get_my_hash():
+    """
+    Get my username hash
+    """
+    return session.get(SessionConstant.USERNAME_HASH)
+
+
 def get_update_stream():
     """
     Get update stream
@@ -206,14 +213,14 @@ def asym_encrypt(key, message):
     return cipher.encrypt(str2bytes(message))
 
 
-def decrypt_username(username):
-    return sym_decrypt(bytes.fromhex(username)).decode()
+def decrypt_username(username, key=None):
+    return sym_decrypt(bytes.fromhex(username), key).decode()
 
 
 def hash_username(username):
     if type(username) == str:
         username = username.encode()
-    return hashpw(username, getenv('USERNAME_SALT').encode()).decode()
+    return hashpw(username.strip().lower(), getenv('USERNAME_SALT').encode()).decode()
 
 
 def get_user_by_hash(uhash):

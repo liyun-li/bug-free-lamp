@@ -8,7 +8,7 @@ import { Button, Grid } from '@material-ui/core';
 import { postRequest } from 'src/httpRequest';
 import { setAlertBox } from 'src/store/alertBox';
 import { alertError, alertResponse } from 'src/utils';
-import * as NodeRSA from 'node-rsa';
+import { setMyPublicKey } from 'src/store/user';
 
 // #region interfaces
 interface IKeyImportDialogProps extends
@@ -30,6 +30,9 @@ const mapDispatchToProps = (dispatch: Dispatch<Action>) => ({
             text,
             display: true
         }));
+    },
+    setMyPublicKey: (publicKey: string) => {
+        dispatch(setMyPublicKey(publicKey));
     }
 });
 // #endregion
@@ -54,7 +57,7 @@ class KeyImportDialog extends React.Component<IKeyImportDialogProps> {
     }
 
     importPublicKey = ({ target }: any) => {
-        const { showResponse, setDisplay } = this.props;
+        const { showResponse, setDisplay, setMyPublicKey } = this.props;
 
         this.readFile(target.files[0], (e: any) => {
             this.setState({
@@ -62,12 +65,11 @@ class KeyImportDialog extends React.Component<IKeyImportDialogProps> {
                 publicKeyImported: false
             }, () => {
                 const publicKey = e.target.result!;
-                const privateKey = new NodeRSA(localStorage.getItem('Not Important')!);
-                const message = privateKey.encryptPrivate('I have a cat that is very chubby');
 
-                postRequest('/user/set_public_key', { publicKey, message })
+                postRequest('/user/set_public_key', { publicKey })
                     .then(response => {
                         localStorage.setItem('Important', publicKey);
+                        setMyPublicKey(publicKey);
                         this.publicKeyUpload().setAttribute('value', '');
                         this.setState({
                             ...this.state,

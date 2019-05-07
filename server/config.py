@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 from redis import Redis
 from os import getenv, urandom
+from bcrypt import hashpw
 
 load_dotenv(verbose=True)
 
@@ -25,12 +26,25 @@ class Config:
 
     DEBUG = not not getenv('DEVELOPMENT_MODE')
 
-    if not getenv('DATA_KEY'):
+    DATA_KEY = getenv('DATA_KEY')
+    if not DATA_KEY:
         print('DATA_KEY is required')
         exit(1)
 
-    if not getenv('USERNAME_SALT'):
+    if len(DATA_KEY) not in [16, 24, 32]:
+        print(f'DATA_KEY must be 16, 24 or 32 bytes.')
+        exit(1)
+
+    USERNAME_SALT = getenv('USERNAME_SALT')
+    if not USERNAME_SALT:
         print('USERNAME_SALT is required')
+        exit(1)
+
+    USERNAME_SALT = USERNAME_SALT.encode()
+    try:
+        hashpw(b'test', USERNAME_SALT)
+    except:
+        print('Incorrect bcrypt salt.')
         exit(1)
 
     if DEBUG:

@@ -1,10 +1,17 @@
 import actionCreatorFactory from 'typescript-fsa';
 import { reducerWithInitialState } from 'typescript-fsa-reducers';
 
+export interface IMessageModel {
+    messageForSender: string;
+    messageForReceiver: string;
+    timestamp: number;
+    sender: string;
+}
+
 export interface IMessage {
     message: string;
     timestamp: number;
-    username: string;
+    sender: string;
 }
 
 export interface IChatStore {

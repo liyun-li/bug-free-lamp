@@ -13,6 +13,7 @@ class EventConstant:
 
 class SessionConstant:
     USERNAME = 'username'
+    USERNAME_HASH = 'username_hash'
     UPDATE_STREAM = 'update_stream'
     ROOM = 'room'
 

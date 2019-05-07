@@ -95,7 +95,7 @@ class Navigation extends React.Component<INavigationProps> {
                 <Toolbar>
                     <Button onClick={() => history.push('/', null)} disableRipple disableTouchRipple
                         className={classes.homePageButton} color='inherit'>
-                        <Typography variant='title'>
+                        <Typography variant='h5'>
                             Bug-Free Lamp
                         </Typography>
                     </Button>
