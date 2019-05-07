@@ -30,3 +30,11 @@ Create a `.env` file under `client/` with the following values:
 ```
 SERVER_ENDPOINT=<bug.free.lamp>
 ```
+
+Then:
+
+```
+sh prepare-server.sh
+sh prepare-client.sh
+docker-compose up
+```
