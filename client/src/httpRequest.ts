@@ -3,7 +3,7 @@ import axios from 'axios';
 axios.defaults.withCredentials = true;
 
 // bad code
-export const SERVER_URL = 'https://bug.free.lamp:3001';
+export const SERVER_URL = process.env.SERVER_ENDPOINT || 'https://bug.free.lamp:3001';
 
 export const postRequest = (url: string, data?: object) =>
     axios({

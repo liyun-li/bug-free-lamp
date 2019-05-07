@@ -8,17 +8,19 @@ services:
             - ./server:/opt/bfl
         ports:
             - 3001:3001
-        command: gunicorn -b 0.0.0.0:3000 --worker-class eventlet --certfile=cert.pem --keyfile=key.pem -w 1 --reload serve:app
+        command: gunicorn -b 0.0.0.0:3001 --worker-class eventlet --certfile=cert.pem --keyfile=key.pem -w 1 --reload serve:app
         depends_on:
             - alice
             - bob
 
     bob:
+        container_name: bob
         image: redis:5-alpine
         restart: always
         tty: true
 
     alice:
+        container_name: alice
         image: postgres:11
         environment:
             - POSTGRES_DB=<BFL_DB_NAME_HERE>
@@ -40,5 +42,4 @@ services:
             - ./client/build:/opt/bfl
         ports:
             - 3000:3000
-        command: "http-server -S --cors -p 3000"
-    
+        command: sh -c "SERVER_ENDPOINT='https://server:3001' http-server -S --cors -p 3000"

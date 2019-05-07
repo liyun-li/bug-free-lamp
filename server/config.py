@@ -13,9 +13,9 @@ class Config:
     dbpass = getenv('DB_PASS')
     dbhost = getenv('DB_HOST')
     dbname = getenv('DB_NAME')
-    dbport = 3306
+    dbport = 5432
 
-    SQLALCHEMY_DATABASE_URI = 'mysql+mysqlconnector://'
+    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://'
 
     if getenv('DB_PORT'):
         port = int(getenv('DB_PORT'))
