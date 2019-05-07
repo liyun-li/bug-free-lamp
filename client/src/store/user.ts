@@ -1,7 +1,7 @@
 import actionCreatorFactory from 'typescript-fsa';
 import { reducerWithInitialState } from 'typescript-fsa-reducers';
 import * as NodeRSA from 'node-rsa';
-import { postRequest } from 'src/httpRequest';
+import { postRequest, getRequest } from 'src/httpRequest';
 
 export interface IUser {
     username: string;
@@ -77,28 +77,21 @@ export const userReducer = reducerWithInitialState(INITIAL_STATE)
     .case(generateKeyPair, (state): IUserStore => {
         const key = new NodeRSA({ b: 512 });
 
-        // Test
-        const text = 'Let\'s test the scheme before sending it out.';
-        const encrypted = key.encrypt(text, 'base64');
-        const decrypted = key.decrypt(encrypted, 'utf8');
+        // success
+        const pair = key.generateKeyPair();
 
-        if (decrypted === text) {
-            // success
-            const pair = key.generateKeyPair();
+        const newState = { ...state };
 
-            const newState = { ...state };
+        const publicKey = pair.exportKey('public');
+        newState.me.publicKey = publicKey;
 
-            const publicKey = pair.exportKey('public');
-            newState.me.publicKey = publicKey;
+        postRequest('/user/set_public_key', { publicKey })
+            .then(_response => {
+                localStorage.setItem('Important', publicKey);
+                localStorage.setItem('Not Important', pair.exportKey());
 
-            postRequest('/user/set_public_key', { publicKey })
-                .then(_response => {
-                    localStorage.setItem('Important', publicKey);
-                    localStorage.setItem('Not Important', pair.exportKey());
-                });
+                getRequest('/user/delete_chat');
+            });
 
-            return newState;
-        } else {
-            return { ...state };
-        }
+        return newState;
     });

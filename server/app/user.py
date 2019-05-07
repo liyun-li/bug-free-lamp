@@ -10,7 +10,7 @@ from app.utils import check_fields, get_user, safer_commit, get_friendship, \
     commit_response, get_post_data, sym_encrypt, create_room, \
     bad_request, good_request, get_me, asym_decrypt, sym_decrypt, \
     decrypt_username, decrypt_username, hash_username, get_user_by_hash, \
-    get_my_hash
+    get_my_hash, decrypt_room_id, get_messages_by
 from app.events import emit_update
 
 base_route = 'user'
@@ -52,14 +52,21 @@ def set_public_key():
     if not user:
         return bad_request(ErrorMessage.UNKNOWN_ERROR)
 
-    if not user.public_key:
-        user.public_key = public_key
-        return commit_response('Success!')
-
-    if user.public_key == public_key:
+    if user.public_key.strip() == public_key.strip():
         return good_request('Success!')
+    else:
+        print(ErrorMessage.BREACHED)
 
-    return bad_request(ErrorMessage.BREACHED)
+    user.public_key = public_key
+    return commit_response('Success!')
+
+
+@user.route(f'/{base_route}/delete_chat')
+def delete_chat():
+    messages = get_messages_by(get_my_hash())
+    for message in messages:
+        db.session.delete(message)
+    return commit_response()
 
 
 @user.route(f'/{base_route}/search', methods=['POST'])
@@ -113,7 +120,7 @@ def add_user():
             emit(
                 EventConstant.EVENT_UPDATE_FRIEND_REQUEST,
                 {},
-                room=receiver.room,
+                room=decrypt_room_id(receiver.room),
                 namespace=EventConstant.NS_USER
             )
         return response

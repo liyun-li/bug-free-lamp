@@ -11,7 +11,7 @@ import SignIn from 'src/SignIn';
 import SignUp from 'src/SignUp';
 import { IStore } from 'src/store';
 import { setFriendRequestDialogDisplay, setSignInDialogDisplay, setSignUpDialogDisplay, setUserSearchDialogDisplay } from 'src/store/dialog';
-import { setFriendRequests, setLoginStatus } from 'src/store/user';
+import { setFriendRequests } from 'src/store/user';
 import UserSearchDialog from 'src/UserSearchDialog';
 
 
@@ -75,7 +75,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         dispatch(setSignUpDialogDisplay(display));
     },
     signOut: () => {
-        dispatch(setLoginStatus(false));
+        localStorage.clear();
+        location.href = '/';
     },
     setRequests: (requests: IStore['user']['friendRequests']) => dispatch(setFriendRequests(requests)),
     showUserSearchDialog: () => dispatch(setUserSearchDialogDisplay(true)),

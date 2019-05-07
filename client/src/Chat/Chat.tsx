@@ -157,13 +157,15 @@ class Chat extends React.Component<IChatProps, IChatState> {
 
         chatSocket.on('get new message', (response: IMessageModel) => {
             const newMessages = [...this.props.messages];
+            console.log(response.sender);
+            console.log(me.username);
             newMessages.push({
                 ...response,
                 message: decryptMessage(
                     response.sender === me.username
                         ? response.messageForSender
                         : response.messageForReceiver,
-                    me.publicKey
+                    localStorage.getItem('Not Important')!
                 )
             });
             setMessages(newMessages);

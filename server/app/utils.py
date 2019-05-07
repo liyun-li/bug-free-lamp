@@ -176,6 +176,15 @@ def good_request(message=''):
     return message, status_code
 
 
+def get_messages_by(username_hash):
+    return Message.query.filter(
+        or_(
+            Message.sender == username_hash,
+            Message.receiver == username_hash
+        )
+    ).all()
+
+
 def get_messages_between(user1, user2):
     """
     Get chat by requester's username and sort it by timestamp
@@ -220,9 +229,16 @@ def decrypt_username(username, key=None):
 def hash_username(username):
     if type(username) == str:
         username = username.encode()
-    return hashpw(username.strip().lower(), getenv('USERNAME_SALT').encode()).decode()
+    return hashpw(
+        username.strip().lower(),
+        getenv('USERNAME_SALT').encode()
+    ).decode()
 
 
 def get_user_by_hash(uhash):
     user = User.query.filter_by(username_hash=uhash.encode()).first()
     return user
+
+
+def decrypt_room_id(room_id):
+    return sym_decrypt(bytes.fromhex(room_id))

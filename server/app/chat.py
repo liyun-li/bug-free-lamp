@@ -68,7 +68,9 @@ def get_messages():
 
     messages = [
         {
-            'sender': decrypt_username(get_user_by_hash(message.sender).username),
+            'sender': decrypt_username(
+                get_user_by_hash(message.sender).username
+            ),
             'timestamp': message.timestamp,
             'messageForSender': message.message_for_sender,
             'messageForReceiver': message.message_for_receiver
@@ -114,20 +116,23 @@ def send_message():
     response = commit_response()
 
     if response[1] < 300:
-        room_id = sym_decrypt(bytes.fromhex(friendship.room))
+        room_id = sym_decrypt(bytes.fromhex(friendship.room)).hex()
         if not room_id:
             return bad_request(ErrorMessage.BREACHED)
+
+        sender_username = decrypt_username(get_user_by_hash(sender).username)
 
         emit(
             EventConstant.EVENT_GET_NEW_MESSAGE,
             {
                 'timestamp': timestamp,
-                'username': sender,
+                'sender': sender_username,
                 'messageForSender': message_for_sender,
                 'messageForReceiver': message_for_receiver
             },
             room=room_id,
             namespace=EventConstant.NS_CHAT,
+            callback=lambda x: print('asdf')
         )
 
     return response

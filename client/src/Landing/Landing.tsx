@@ -108,7 +108,7 @@ class Landing extends React.Component<ILandingProps> {
                             }
                             <Grid container alignItems='center' justify='center'>
                                 <Typography className={classes.note}>
-                                    Generating a key pair will take time. You will see a pop-up dialog once the generation is complete.
+                                    WARNING: You will not be able to recover your conversations if you generate a new key pair. The process will take time.
                                 </Typography>
                             </Grid>
                         </React.Fragment>

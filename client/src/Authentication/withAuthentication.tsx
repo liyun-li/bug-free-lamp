@@ -66,6 +66,8 @@ const withAuthentication = (Component: React.ComponentClass) => {
                                 .then(_response => {
                                     setMyPublicKey(myPublicKey);
                                 });
+                        } else if (me.publicKey) {
+                            localStorage.setItem('Important', me.publicKey);
                         }
                     }
 
