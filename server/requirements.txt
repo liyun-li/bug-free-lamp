@@ -13,3 +13,4 @@ python-dotenv
 redis
 bcrypt
 pycryptodome
+psycopg2
