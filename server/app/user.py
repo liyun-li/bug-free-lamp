@@ -162,6 +162,8 @@ def accept_friend_request():
 
     room = Room(room_id=room_id)
     db.session.add(room)
+    if not safer_commit():
+        return bad_request(ErrorMessage.UNKNOWN_ERROR)
 
     # Change friendship status
     friendship.room = room_id

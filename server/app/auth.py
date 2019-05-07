@@ -66,6 +66,10 @@ def register():
 
     room = Room(room_id=room_id)
 
+    db.session.add(room)
+    if not safer_commit():
+        return bad_request('Something went wrong.')
+
     user = User(
         username_hash=username_hash,
         username=encrypted_username,
@@ -73,7 +77,6 @@ def register():
         room=room_id
     )
 
-    db.session.add(room)
     db.session.add(user)
 
     if not safer_commit():
