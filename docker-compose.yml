@@ -41,3 +41,4 @@ services:
         ports:
             - 3000:3000
         command: "http-server -S --cors -p 3000"
+    
