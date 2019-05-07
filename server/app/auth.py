@@ -21,11 +21,11 @@ def login():
         return ErrorMessage.EMPTY_FIELDS, 400
 
     user = get_user(username)
-    if not (user and checkpw(password.encode('utf-8'), user.password)):
+    if not (user and checkpw(password.encode(), user.password.encode())):
         return ErrorMessage.INVALID_CREDENTIAL, 400
 
     session[SessionConstant.USERNAME] = user.username
-    session[SessionConstant.USERNAME_HASH] = user.username_hash.decode()
+    session[SessionConstant.USERNAME_HASH] = user.username_hash
     session[SessionConstant.UPDATE_STREAM] = sym_decrypt(
         bytes.fromhex(user.room)
     )
@@ -60,21 +60,20 @@ def register():
         getenv('USERNAME_SALT').encode()
     ).decode()
     password_hash = hashpw(password.encode(), gensalt()).decode()
-    room = create_room()
+    room_id = create_room()
     encrypted_username = sym_encrypt(username).hex()
     decrypted_username = decrypt_username(encrypted_username)
 
-    room = Room(room_id=room)
-    db.session.add(room)
-    safer_commit()
+    room = Room(room_id=room_id)
 
     user = User(
         username_hash=username_hash,
         username=encrypted_username,
         password=password_hash,
-        room=room
+        room=room_id
     )
 
+    db.session.add(room)
     db.session.add(user)
 
     if not safer_commit():
@@ -82,7 +81,9 @@ def register():
 
     session[SessionConstant.USERNAME] = encrypted_username
     session[SessionConstant.USERNAME_HASH] = username_hash
-    session[SessionConstant.UPDATE_STREAM] = sym_decrypt(bytes.fromhex(room))
+    session[SessionConstant.UPDATE_STREAM] = sym_decrypt(
+        bytes.fromhex(room_id)
+    )
 
     return dumps({
         'username': decrypted_username

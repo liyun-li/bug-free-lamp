@@ -238,7 +238,7 @@ def hash_username(username):
 
 
 def get_user_by_hash(uhash):
-    user = User.query.filter_by(username_hash=uhash.encode()).first()
+    user = User.query.filter_by(username_hash=uhash).first()
     return user
 
 

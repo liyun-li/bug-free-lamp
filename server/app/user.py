@@ -52,7 +52,7 @@ def set_public_key():
     if not user:
         return bad_request(ErrorMessage.UNKNOWN_ERROR)
 
-    if user.public_key.strip() == public_key.strip():
+    if (user.public_key or '').strip() == public_key.strip():
         return good_request('Success!')
     else:
         print(ErrorMessage.BREACHED)
@@ -181,13 +181,13 @@ def accept_friend_request():
 def reject_friend_request():
     data = get_post_data()
     username = data.get('username')
-    me = session.get(SessionConstant.USERNAME)
+    me = get_my_hash()
 
     if not check_fields([username]):
         return bad_request(ErrorMessage.EMPTY_FIELDS)
 
     # Find friendship
-    friendship = get_friendship(username, decrypt)
+    friendship = get_friendship(hash_username(username), me)
 
     if not friendship:
         return bad_request(ErrorMessage.USER_NOT_FOUND)
@@ -201,18 +201,16 @@ def reject_friend_request():
 
 @user.route(f'/{base_route}/friend_requests', methods=['GET'])
 def get_requests():
-    print(get_my_hash())
-
     requests = Friendship.query.filter_by(
         user2=get_my_hash(),
         status=RequestStatus.pending
     ).all()
 
+    senders = []
     for request in requests:
+        print(request.user1)
         sender = get_user_by_hash(request.user1)
-
-    senders = [decrypt_username(get_user_by_hash(
-        request.user1).username) for request in requests]
+        senders.append(decrypt_username(sender.username))
 
     return good_request(dumps(senders))
 
