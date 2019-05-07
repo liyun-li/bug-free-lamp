@@ -53,17 +53,17 @@ class Config:
         print('Database configuration not provided')
         exit(1)
 
-    # session settings
-    if DEBUG:
-        SESSION_TYPE = 'sqlalchemy'
-    else:
-        SESSION_TYPE = 'redis'
-        SESSION_FILE_DIR = Redis(host='app_cache', port=6379)
-
     SECRET_KEY = getenv('SERVER_KEY')
     if not SECRET_KEY:
         print('SECRET_KEY is required.')
         exit(1)
+
+    # session settings
+    if not getenv('REDIS_HOST') or DEBUG:
+        SESSION_TYPE = 'sqlalchemy'
+    else:
+        SESSION_TYPE = 'redis'
+        SESSION_REDIS = Redis(host=getenv('REDIS_HOST'), port=6379)
 
     # track DB mod
     SQLALCHEMY_TRACK_MODIFICATIONS = True

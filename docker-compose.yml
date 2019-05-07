@@ -12,6 +12,8 @@ services:
         depends_on:
             - alice
             - bob
+        tty: true
+        stdin_open: true
 
     bob:
         container_name: bob
@@ -42,4 +44,4 @@ services:
             - ./client/build:/opt/bfl
         ports:
             - 3000:3000
-        command: sh -c "SERVER_ENDPOINT='https://server:3001' http-server -S --cors -p 3000"
+        command: "http-server -S --cors -p 3000"

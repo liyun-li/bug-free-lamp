@@ -39,7 +39,7 @@ class User(db.Model):
     username_hash = db.Column(db.String(72), primary_key=True)  # bcrypt
 
     username = db.Column(
-        db.String(ModelConstant.USERNAME_SIZE)
+        db.String(ModelConstant.USERNAME_SIZE * 8)
     )
 
     password = db.Column(db.String(72))  # bcrypt max length

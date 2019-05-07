@@ -19,6 +19,7 @@ echo 'DB_NAME='$DB_NAME > $env_path
 echo 'DB_HOST='$DB_HOST >> $env_path
 echo 'DB_USER='$DB_USER >> $env_path
 echo 'DB_PASS='$DB_PASS >> $env_path
+echo 'REDIS_HOST=bob' >> $env_path
 echo 'SERVER_KEY='$SERVER_KEY >> $env_path
 echo 'DATA_KEY='$DATA_KEY >> $env_path
 echo 'USERNAME_SALT='$USERNAME_SALT >> $env_path

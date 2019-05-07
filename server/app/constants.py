@@ -20,7 +20,7 @@ class SessionConstant:
 
 class ModelConstant:
     USERNAME_SIZE = 32
-    ROOM_ID_SIZE = 128
+    ROOM_ID_SIZE = 24
     GCM_TAG_SIZE = 16
     GCM_NONCE_SIZE = 16
 

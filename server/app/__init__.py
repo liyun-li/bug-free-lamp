@@ -20,7 +20,7 @@ def create_app():
     # initialize database
     db.init_app(app)
     with app.app_context():
-        if debug_mode:
+        if debug_mode or not app.config['SESSION_REDIS']:
             SqlAlchemySessionInterface(app, db, 'sessions', 'sess_')
             # db.drop_all()
         db.create_all()

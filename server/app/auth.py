@@ -2,7 +2,7 @@ from flask import Blueprint, request, session
 from bcrypt import hashpw, checkpw, gensalt
 from json import dumps
 from os import getenv
-from app.models import db, User
+from app.models import db, User, Room
 from app.constants import ErrorMessage, SessionConstant, EventConstant
 from app.utils import check_fields, get_user, get_post_data, safer_commit, \
     create_room, good_request, sym_encrypt, sym_decrypt, decrypt_username
@@ -58,11 +58,15 @@ def register():
     username_hash = hashpw(
         username.lower().encode(),
         getenv('USERNAME_SALT').encode()
-    )
-    password_hash = hashpw(password.encode(), gensalt())
+    ).decode()
+    password_hash = hashpw(password.encode(), gensalt()).decode()
     room = create_room()
     encrypted_username = sym_encrypt(username).hex()
     decrypted_username = decrypt_username(encrypted_username)
+
+    room = Room(room_id=room)
+    db.session.add(room)
+    safer_commit()
 
     user = User(
         username_hash=username_hash,
@@ -77,7 +81,7 @@ def register():
         return ErrorMessage.REGISTRATION_ERROR, 400
 
     session[SessionConstant.USERNAME] = encrypted_username
-    session[SessionConstant.USERNAME_HASH] = username_hash.decode()
+    session[SessionConstant.USERNAME_HASH] = username_hash
     session[SessionConstant.UPDATE_STREAM] = sym_decrypt(bytes.fromhex(room))
 
     return dumps({

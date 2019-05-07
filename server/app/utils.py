@@ -52,7 +52,7 @@ def get_user(username):
     if type(lowercased) != bytes:
         lowercased = lowercased.encode()
     userhash = hashpw(lowercased, getenv('USERNAME_SALT').encode())
-    return User.query.filter_by(username_hash=userhash).first()
+    return User.query.filter_by(username_hash=userhash.decode()).first()
 
 
 def get_friendship(user1, user2):
@@ -137,10 +137,12 @@ def create_room():
     """
 
     room_id = token_bytes(ModelConstant.ROOM_ID_SIZE)
+    room_id = sym_encrypt(room_id).hex()
     while get_room(room_id):
         room_id = token_bytes(ModelConstant.ROOM_ID_SIZE)
+        room_id = sym_encrypt(room_id).hex()
 
-    return sym_encrypt(room_id).hex()
+    return room_id
 
 
 def get_me():
