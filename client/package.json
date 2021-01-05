@@ -10,7 +10,7 @@
     "@types/react-router-dom": "^4.3.2",
     "@types/redux-thunk": "^2.1.0",
     "@types/socket.io-client": "^1.4.32",
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "dotenv": "^8.0.0",
     "node-rsa": "^1.0.5",
     "react": "^16.8.6",
